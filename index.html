@@ -112,6 +112,13 @@ We set the language of the page to English and add classes for scrollbar and scr
       /* O cualquier otro valor por defecto */
     }
 
+    @media only screen and (min-width: 640px) {
+      .section-pr {
+        padding: 10rem;
+        /* Más padding en pantallas pequeñas */
+      }
+    }
+
     /* Media query para md: */
     @media only screen and (min-width: 768px) {
       .section-pr {
@@ -670,7 +677,7 @@ If URL is '/' (home page), assign ID as 'home'
     <!--https://preline.co/plugins/html/overlay.html-->
     <main class="astro-ouamjn2i">
       <astro-banner btnId="dismiss-button">
-        <div class="fixed bottom-0 start-1/2 z-50 mx-auto w-full -translate-x-1/2 transform p-6 sm:max-w-4xl"
+        <div class="fixed bottom-0 start-1/2 z-50 mx-auto md:w-full -translate-x-1/2 transform p-6 sm:max-w-4xl hidden"
           role="region" aria-label="Informational Banner">
           <div
             class="rounded-xl bg-neutral-800 bg-[url('/banner-pattern.svg')] bg-cover bg-center bg-no-repeat p-4 text-center shadow-sm dark:bg-neutral-200">
