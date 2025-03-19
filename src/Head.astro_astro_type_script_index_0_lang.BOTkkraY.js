@@ -1,1 +1,1 @@
-import"./MainLayoutastrosrc_type_script_index_0_langDx5cMrqn.js";
+import"./MainLayout.astro_astro_type_script_index_0_lang.Dx5cMrqn.js";
