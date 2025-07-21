@@ -904,6 +904,31 @@ If URL is '/' (home page), assign ID as 'home'
         </div>
       </section>
     </main>
+
+    <div class="contenedor-qr">
+      <div class="grid">
+        <div
+          class="border-neutral-200 dark:border-neutral-600 dark:bg-neutral-800 border dark:bg-gray-800 dark:border-gray-700 max-w-xs place-self-center rounded-lg shadow w-full bg-white">
+          <a href="https://linktr.ee/trivida" target="_blank"><img alt="Qr image" class="p-8 rounded-t-lg"
+              src="https://i.imgur.com/BrOnztW.png"></a>
+          <div class="px-5 pb-5">
+            <a href="#https://linktr.ee/trivida" target="_blank">
+              <h5 class="text-xl text-neutral-800 dark:text-neutral-300 font-semibold text-center tracking-tight">
+                Escanea el código QR para ver nuestras redes
+              </h5>
+            </a>
+            <div class="items-center flex justify-center p-5">
+              <a href="https://linktr.ee/trivida" class="boton-qr" target="_blank">Ver nuestras redes</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
     <section class="contenedor-mapa w-full p-6">
       <div class="mx-auto max-w-2xl lg:max-w-5xl mb-8">
         <div class="text-center">
@@ -914,7 +939,10 @@ If URL is '/' (home page), assign ID as 'home'
             Avenida Orellana E2-30 y Avenida 10 de Agosto(Quito – Ecuador) </p>
         </div>
       </div>
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1994.897459853636!2d-78.4966046735644!3d-0.1962343864736975!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59b004915ab93%3A0x850368c607fce983!2sEdificio%20Francisco%20de%20Orellana!5e0!3m2!1ses!2sec!4v1744651924959!5m2!1ses!2sec" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <iframe
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1994.897459853636!2d-78.4966046735644!3d-0.1962343864736975!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59b004915ab93%3A0x850368c607fce983!2sEdificio%20Francisco%20de%20Orellana!5e0!3m2!1ses!2sec!4v1744651924959!5m2!1ses!2sec"
+        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
     </section>
   </div> <a href="https://wa.link/bo8luu" target="_blank" rel="noreferrer noopener"
     class="fixed bottom-4 right-4 z-50 inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#25d366]">
@@ -1177,6 +1205,24 @@ If URL is '/' (home page), assign ID as 'home'
         type="module">const e = new Date().getFullYear(), t = document.getElementById("current-year"); t.innerText = e.toString();</script>
     </div>
   </footer>
+
+  <style>
+    .boton-qr {
+      padding-top: 0.625rem;
+      padding-bottom: 0.625rem;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      font-weight: 500;
+      text-align: center;
+      background-color: #E8AA31;
+    }
+    .boton-qr:hover{
+      background-color: #eebe5cfd;
+    }
+  </style>
 </body>
 
 </html>
