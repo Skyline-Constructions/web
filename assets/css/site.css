@@ -188,3 +188,36 @@ table.inv{width:100%;border-collapse:collapse;font-size:15px;min-width:720px;fon
 .amen figure{margin:0;position:relative}.amen img{aspect-ratio:4/3;object-fit:cover;width:100%}
 .amen figcaption{padding:12px 0 0;font-weight:700;font-size:16px}
 .amen figcaption span{display:block;font-weight:400;font-size:14px;color:var(--niebla)}
+/* Home 2.1: marca Skyline protagonista */
+.hero.home .wrap{display:block;text-align:center;padding-block:clamp(56px,8vw,104px)}
+.hero-brand{display:flex;justify-content:center}
+.hero-brand img{width:clamp(220px,32vw,420px);height:auto}
+.tagline{font-size:clamp(34px,5vw,72px);max-width:16ch;margin:28px auto 0;text-align:center}
+.hero.home .lead{margin:24px auto 0;max-width:62ch;text-align:center}
+.hero.home .btns{justify-content:center}
+/* Tarjeta destacada (Monteza) */
+.card.featured{display:grid;grid-template-columns:7fr 5fr;background:var(--blanco);box-shadow:0 1px 0 var(--linea)}
+.card.featured .ph{aspect-ratio:auto;min-height:380px}
+.card.featured .body{padding:clamp(24px,4vw,48px);align-self:center}
+.cards.one{grid-template-columns:1fr}
+.pf-h{font-size:clamp(26px,3vw,38px);margin:40px 0 22px}
+.pf-h:first-of-type{margin-top:28px}
+@media (max-width:820px){.card.featured{grid-template-columns:1fr}.card.featured .ph{min-height:0;aspect-ratio:4/3}}
+/* Landing móvil /monteza/ */
+.lp-hero{position:relative;min-height:100svh;background:var(--carbon);color:#fff;overflow:hidden;display:flex;align-items:flex-end}
+.lp-hero video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lp-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#1d1d1b33 0%,#1d1d1b00 35%,#1d1d1bdd 100%)}
+.lp-over{position:relative;z-index:1;padding:28px 20px 40px;max-width:640px;margin:0 auto;width:100%}
+.lp-over h1{font-size:clamp(34px,8vw,60px);margin-top:10px}
+.lp-logo{width:min(320px,80%);height:auto;display:block;margin:6px 0 4px}
+.lp{padding:48px 20px;max-width:640px;margin:0 auto}
+.lp.dark{background:var(--carbon);color:#F2F0EA;max-width:none}
+.lp.concrete{background:var(--hormigon);max-width:none}
+.lp.dark>*,.lp.concrete>*{max-width:600px;margin-left:auto;margin-right:auto}
+.lp h2{font-size:clamp(28px,6vw,42px);margin-bottom:14px}
+.lp-list{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:12px}
+.lp-list li{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--linea);padding-bottom:10px}
+.lp.dark .lp-list li{border-color:#ffffff22}
+.lp-list b{color:var(--acento);white-space:nowrap}.lp.dark .lp-list b{color:var(--oro)}
+.lp-gal{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lp-gal img{width:100%;aspect-ratio:1;object-fit:cover}
