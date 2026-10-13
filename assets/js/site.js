@@ -9,10 +9,10 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList
 // Portfolio filter
 var fb=document.querySelectorAll('[data-filter]');
 fb.forEach(function(b){b.addEventListener('click',function(){var f=b.dataset.filter;fb.forEach(function(x){x.setAttribute('aria-pressed',x===b)});
-document.querySelectorAll('[data-cat]').forEach(function(c){c.hidden=!(f==='todos'||c.dataset.cat===f)})})});
+document.querySelectorAll('[data-cat]').forEach(function(c){c.hidden=!(f==='todos'||c.dataset.cat.split(' ').indexOf(f)>-1)});document.querySelectorAll('.pf-h').forEach(function(h){var g=h.nextElementSibling;h.hidden=!g.querySelector('[data-cat]:not([hidden])')})})});
 // Forms (Formspree)
 document.querySelectorAll('form[data-ajax]').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();var s=f.querySelector('[data-status]'),b=f.querySelector('button[type=submit]');b.disabled=true;s.textContent='Enviando…';
-fetch(f.action,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}}).then(function(r){if(r.ok){s.textContent='Recibimos tus datos. Te escribimos en menos de 24 horas laborables.';f.reset();}else{s.textContent='No se pudo enviar. Escríbenos por WhatsApp al +593 98 454 0822.';}b.disabled=false}).catch(function(){s.textContent='No se pudo enviar. Revisa tu conexión o escríbenos por WhatsApp.';b.disabled=false})})});
+fetch(f.action,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}}).then(function(r){if(r.ok){s.textContent='Recibimos tus datos. Te escribimos en menos de 24 horas laborables.';f.reset();}else{s.textContent='No se pudo enviar. Escríbenos por WhatsApp al +593 96 300 2600.';}b.disabled=false}).catch(function(){s.textContent='No se pudo enviar. Revisa tu conexión o escríbenos por WhatsApp.';b.disabled=false})})});
 // Inventory
 var root=document.getElementById('inventario');if(!root)return;
 var U=JSON.parse(document.getElementById('inv-data').textContent);
@@ -32,7 +32,7 @@ var f=document.getElementById('form-mz');f.querySelector('[name=unidad]').value=
 f.querySelector('[name=tipo]').value=u.tipo;
 document.getElementById('pick').innerHTML='Unidad seleccionada: <b>'+u.id+'</b> · '+u.tipo+' · '+u.nivel+' · '+u.area.toFixed(2)+' m²'+(u.abierta?' + '+u.abierta.toFixed(2)+' m² de patio o balcón':'')+' · <b>'+fmt(u.pvp)+'</b>';
 document.getElementById('pick').hidden=false;
-var w=document.getElementById('wa-mz');w.href='https://wa.me/593984540822?text='+encodeURIComponent('Hola Skyline, me interesa la unidad '+u.id+' ('+u.tipo+', '+u.area.toFixed(2)+' m², '+fmt(u.pvp)+') de Monteza Residences.');
+var w=document.getElementById('wa-mz');w.href='https://wa.me/593963002600?text='+encodeURIComponent('Hola Skyline, me interesa la unidad '+u.id+' ('+u.tipo+', '+u.area.toFixed(2)+' m², '+fmt(u.pvp)+') de Monteza Residences.');
 document.getElementById('contacto-mz').scrollIntoView({behavior:'smooth'});}
 root.querySelectorAll('[data-tipo]').forEach(function(b){b.addEventListener('click',function(){st.tipo=b.dataset.tipo;root.querySelectorAll('[data-tipo]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});draw()})});
 root.querySelector('#f-nivel').addEventListener('change',function(e){st.nivel=e.target.value;draw()});
