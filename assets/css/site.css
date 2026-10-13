@@ -467,3 +467,13 @@ dialog.lead::backdrop{background:#1d1d1bcc;backdrop-filter:blur(3px)}
 .lead-st{margin-top:10px;font-size:14px;color:var(--acero)}
 .lead-ok{margin-top:10px;border-top:1px solid var(--linea);padding-top:16px}.lead-ok h3{font-size:24px;color:var(--acento)}
 .lead-ok .btn-line{color:var(--carbon)}
+/* ===== Objeciones / FAQ ===== */
+.obs{display:grid;gap:10px}
+.ob{background:#fff;border-left:4px solid var(--oro)}
+.ob summary{list-style:none;cursor:pointer;padding:18px 48px 18px 20px;position:relative;display:flex;flex-direction:column;gap:4px}
+.ob summary::-webkit-details-marker{display:none}
+.ob summary::after{content:"+";position:absolute;right:18px;top:14px;font:400 30px/1 var(--display);color:var(--acento);transition:transform .3s}
+.ob[open] summary::after{transform:rotate(45deg)}
+.oq{font:400 clamp(19px,1.7vw,23px)/1.25 var(--display)}.oh{font-size:14px;font-weight:800;color:var(--acento)}
+.ob p{padding:0 20px 20px;margin:0;color:var(--acero)}
+#preguntas .split>div:first-child{position:sticky;top:110px;align-self:start}@media (max-width:900px){#preguntas .split>div:first-child{position:static}}
