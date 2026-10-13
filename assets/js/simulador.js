@@ -23,7 +23,7 @@ function amort(L,tasa,anios,sis){var n=anios*12,i=tasa/100/12,rows=[],s=L,c;
  else{var ca2=L/n;for(var k2=1;k2<=n;k2++){var it2=s*i;s-=ca2;rows.push({k:k2,c:ca2+it2,i:it2,a:ca2,s:Math.max(0,s)})}}
  return rows}
 function sum(r,k){return r.reduce(function(a,x){return a+x[k]},0)}
-var last=null;
+var last=null,used=false;function used1(){if(used)return;used=true;try{if(window.gtag)gtag('event','simulator_use')}catch(e){}}
 function calc(){
  var P=+el.p.value||0, e=Math.max(ENTMIN,+el.e.value), E=P*e/100, S=P-E;
  el.ev.textContent=e+' % · '+money(E);
@@ -71,15 +71,16 @@ function calc(){
  tb.innerHTML=html||'<tr><td colspan="5">Sin saldo a financiar.</td></tr>';
  $('#h-tabla thead th').textContent=st.full?'Mes':'Año';$('#h-tabla thead th:nth-child(2)').textContent=st.full?'Cuota':'Cuotas del año';
  last={P:P,e:e,E:E,S:S,n:n,cu:cu,saldo:saldo,pctEnt:pctEnt,b:b,tasa:tasa,anios:anios,rows:rows,c1:c1,ti:ti,u:el.u.value};
+ window.SIM_WA=CFG.wa; window.simLast=function(){var ah=Math.max(0,bi-ti);return {raw:last,u:last.u,e:e,precio:money(P),ent:money(E),n:n,cuota:n?money2(cu):'',pagado:money(E+paid),pct:pct(pctEnt),saldo:saldo>0?money(saldo):'',hip:rows.length?money2(c1):'',int:money(ti),ing:rows.length?money(c1/CFG.relacionCuotaIngreso):'',base:money(bi),ahorro:money(ah),m2:money2,txt:$('#sim-wa').dataset.txt||''}};
  // WhatsApp y formulario
  var txt='Hola Skyline, simulé mi compra en Monteza Residences: '+(last.u?'unidad '+last.u+', ':'')+'precio '+money(P)+', entrada '+e+' % ('+money(E)+')'+(n?', '+n+' cuotas directas de '+money2(cu):'')+(saldo>0?', saldo a la entrega '+money(saldo)+' con '+b.n+' al '+String(tasa).replace('.',',')+' % a '+anios+' años (cuota aprox. '+money2(c1)+')':', departamento pagado al 100 % a la entrega')+'. Quiero recibir mi plan de pagos.';
- $('#sim-wa').href=CFG.wa+'?text='+encodeURIComponent(txt);
+ $('#sim-wa').href=CFG.wa+'?text='+encodeURIComponent(txt);$('#sim-wa').dataset.txt=txt;
  var f=document.getElementById('form-mz');if(f){var h=f.querySelector('[name=simulacion]');if(h)h.value=txt;if(last.u){var fu=f.querySelector('[name=unidad]');if(fu&&!fu.value)fu.value=last.u}}
 }
 // Eventos
 el.u.addEventListener('change',function(){var u=U.find(function(x){return x.id===el.u.value});if(u&&u.pvp)el.p.value=u.pvp;calc()});
 el.p.addEventListener('input',function(){el.u.value='';calc()});
-[el.e,el.m,el.c,el.t,el.y].forEach(function(x){x.addEventListener('input',calc)});
+[el.e,el.m,el.c,el.t,el.y].forEach(function(x){x.addEventListener('input',function(){used1();calc()})});
 el.bk.addEventListener('change',function(){setBank(el.bk.value)});
 root.querySelectorAll('[data-modo]').forEach(function(b){b.addEventListener('click',function(){st.modo=b.dataset.modo;root.querySelectorAll('[data-modo]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});$('#w-plazo').hidden=st.modo!=='plazo';$('#w-cuota').hidden=st.modo!=='cuota';calc()})});
 root.querySelectorAll('[data-cuota]').forEach(function(b){b.addEventListener('click',function(){el.c.value=b.dataset.cuota;root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
@@ -105,4 +106,47 @@ function renderSav(P,S,bi,ti){var box=document.getElementById('sav');if(!box)ret
  sv.querySelectorAll('.stp').forEach(function(x){x.addEventListener('click',function(){var q=+x.dataset.q;st.modo='cuota';root.querySelectorAll('[data-modo]').forEach(function(m){m.setAttribute('aria-pressed',m.dataset.modo==='cuota')});$('#w-plazo').hidden=true;$('#w-cuota').hidden=false;el.c.value=q;root.querySelectorAll('[data-cuota]').forEach(function(m){m.setAttribute('aria-pressed',+m.dataset.cuota===q)});calc()})})}
 window.simSetUnit=function(id){var u=U.find(function(x){return x.id===id});if(!u||!u.pvp)return;el.u.value=id;el.p.value=u.pvp;calc()};
 setBank(st.banco);
+})();
+/* Captura de datos y plan de pagos en PDF */
+(function(){var dlg=document.getElementById('lead'),f=document.getElementById('lead-f');if(!dlg||!f)return;
+function ced(v){if(!/^\d{10}$/.test(v))return false;var pr=+v.slice(0,2);if(!((pr>=1&&pr<=24)||pr===30))return false;if(+v[2]>5)return false;var s=0;for(var i=0;i<9;i++){var d=+v[i]*(i%2?1:2);if(d>9)d-=9;s+=d}return (10-s%10)%10===+v[9]}
+function err(id,m){var e=f.querySelector('[data-for="'+id+'"]');if(e)e.textContent=m||''}
+var ec=f.querySelector('#lf-ec'),cony=f.querySelector('#lf-cony');
+ec.addEventListener('change',function(){var c=/Casado|Unión/.test(ec.value);cony.hidden=!c;f.querySelector('#lf-cn').required=c;f.querySelector('#lf-cc').required=c});
+function open(canal){var L=window.simLast&&window.simLast();f.querySelector('#lf-canal').value=canal;f.querySelector('#lf-sim').value=L?L.txt:'';
+ document.getElementById('lead-sum').innerHTML=L?('<b>'+(L.u?'Unidad '+L.u+' · ':'')+L.precio+'</b> · entrada '+L.ent+(L.n?' · '+L.n+' cuotas de '+L.cuota:'')+(L.saldo?' · saldo a la entrega '+L.saldo:'')):'';
+ document.getElementById('lead-ok').hidden=true;f.querySelector('button[type=submit]').hidden=false;
+ if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','');try{if(window.gtag)gtag('event','lead_form_open',{canal:canal})}catch(e){}}
+document.querySelectorAll('[data-lead]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();open(b.dataset.lead)})});
+dlg.querySelector('.lead-x').addEventListener('click',function(){dlg.close()});
+dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+function loadPDF(cb){if(window.jspdf)return cb();var s=document.createElement('script');s.src='/assets/js/jspdf.umd.min.js';s.onload=function(){cb()};s.onerror=function(){cb(true)};document.head.appendChild(s)}
+function makePDF(d,L){var J=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),y=0,W=210;
+ function hdr(){J.setFillColor(29,29,27);J.rect(0,0,W,30,'F');J.setFillColor(255,201,97);J.rect(0,30,W,1.5,'F');J.setTextColor(255,201,97);J.setFontSize(9);J.text('SKYLINE CONSTRUCTIONS',14,12);J.setTextColor(255,255,255);J.setFontSize(18);J.text('Monteza Residences · Plan de pagos',14,22);y=42;J.setTextColor(29,29,27)}
+ function row(a,b,bold){if(y>275){J.addPage();hdr()}J.setFontSize(10);J.setFont('helvetica',bold?'bold':'normal');J.text(String(a),14,y);J.text(String(b),196,y,{align:'right'});J.setDrawColor(214,212,206);J.line(14,y+2,196,y+2);y+=7}
+ function title(t){if(y>260){J.addPage();hdr()}y+=3;J.setFont('helvetica','bold');J.setFontSize(12);J.setTextColor(125,95,37);J.text(t,14,y);J.setTextColor(29,29,27);y+=8}
+ hdr();J.setFontSize(10);J.setFont('helvetica','normal');J.text('Cliente: '+d.nombre,14,y);J.text('Cédula: '+d.cedula,196,y,{align:'right'});y+=6;J.text('Fecha: '+new Date().toLocaleDateString('es-EC'),14,y);J.text('WhatsApp: '+d.whatsapp,196,y,{align:'right'});y+=8;
+ title('Tu compra');row('Unidad',L.u||'Por definir');row('Precio de preventa',L.precio,true);row('Entrada ('+L.e+' %)',L.ent);
+ title('Crédito directo Skyline · 0 % de interés');row('Número de cuotas',L.n||0);row('Cuota mensual',L.cuota||'—',true);row('Pagado a la entrega',L.pagado+' ('+L.pct+')');row('Saldo a la entrega',L.saldo||'USD 0',true);
+ if(L.raw.saldo>0){title('Saldo con crédito hipotecario');row('Entidad',L.raw.b.n);row('Tasa anual referencial',String(L.raw.tasa).replace('.',',')+' %');row('Plazo',L.raw.anios+' años');row('Cuota mensual aproximada',L.hip,true);row('Intereses totales',L.int);row('Ingreso familiar sugerido',L.ing)}
+ title('Tu ahorro por comprar en planos');row('Intereses si financias el 80 % con banco',L.base);row('Intereses con tu plan',L.int||'USD 0');row('Ahorro en intereses',L.ahorro,true);
+ if(L.raw.n){title('Cronograma del crédito directo');var s=L.raw.S;for(var k=1;k<=L.raw.n;k++){var c=Math.min(L.raw.cu,s);s-=c;row('Cuota '+k,L.m2(c)+'   ·   saldo '+L.m2(Math.max(0,s)))}}
+ if(L.raw.rows&&L.raw.rows.length){title('Resumen anual del crédito hipotecario');for(var a=0;a<L.raw.anios;a++){var sl=L.raw.rows.slice(a*12,a*12+12);if(!sl.length)break;var ci=sl.reduce(function(x,r){return x+r.c},0),ii=sl.reduce(function(x,r){return x+r.i},0);row('Año '+(a+1),'cuotas '+L.m2(ci)+' · interés '+L.m2(ii)+' · saldo '+L.m2(sl[sl.length-1].s))}}
+ y+=4;if(y>255){J.addPage();hdr()}J.setFontSize(8);J.setTextColor(94,92,87);J.text(J.splitTextToSize('Simulación referencial; no constituye oferta ni aprobación de crédito. El crédito directo está sujeto a aprobación de Skyline Constructions y a la firma de la promesa de compraventa; cuotas hasta la entrega, máximo 36 meses. Condiciones hipotecarias referenciales a octubre de 2026, definidas por cada entidad. Precios sujetos a cambio y disponibilidad. Brochure: skylineconstructions.build/assets/docs/Monteza-Residences-Brochure.pdf · WhatsApp +593 96 300 2600',182),14,y);
+ return J}
+f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f),d={};fd.forEach(function(v,k){d[k]=v});var ok=true;err('lf-ced');err('lf-cc');err('lf-wa');
+ if(!ced(d.cedula||'')){err('lf-ced','Revisa tu número de cédula');ok=false}
+ if(/Casado|Unión/.test(d.estado_civil)&&!ced(d.conyuge_cedula||'')){err('lf-cc','Revisa la cédula del cónyuge');ok=false}
+ var wa=(d.whatsapp||'').replace(/\D/g,'');if(wa.length<9){err('lf-wa','Revisa tu número de WhatsApp');ok=false}
+ if(!f.checkValidity()||!ok){f.reportValidity();return}
+ var st=f.querySelector('.lead-st'),bt=f.querySelector('button[type=submit]');bt.disabled=true;st.textContent='Generando tu plan…';
+ var L=window.simLast&&window.simLast();
+ fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).catch(function(){}).then(function(){
+  try{if(window.gtag)gtag('event','generate_lead',{form:'plan_de_pagos',canal:d.canal})}catch(x){}
+  loadPDF(function(fail){bt.disabled=false;bt.hidden=true;st.textContent='';var ok2=document.getElementById('lead-ok');ok2.hidden=false;
+   var name='Plan-de-pagos-Monteza'+(L&&L.u?'-'+L.u:'')+'.pdf',lp=document.getElementById('lo-pdf');
+   var done=false;if(!fail&&L){try{var J=makePDF(d,L),url=URL.createObjectURL(J.output('blob'));lp.href=url;lp.download=name;lp.hidden=false;lp.click();done=true}catch(x){console.error('pdf',x)}}if(!done){lp.hidden=true}
+   var msg='Hola Skyline, soy '+d.nombre+'. Generé mi plan de pagos de Monteza Residences: '+(L?L.txt:'')+' Prefiero recibir la información por '+d.canal+'.';
+   document.getElementById('lo-wa').href=window.SIM_WA+'?text='+encodeURIComponent(msg);
+   if(d.canal==='whatsapp')setTimeout(function(){window.open(document.getElementById('lo-wa').href,'_blank')},900)})})});
 })();
