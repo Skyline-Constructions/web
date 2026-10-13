@@ -1,3 +1,8 @@
+// Captación: UTM y eventos
+var tk=function(n,p){try{if(window.gtag)gtag('event',n,p||{})}catch(e){}};
+(function(){try{var q=new URLSearchParams(location.search),k=['utm_source','utm_medium','utm_campaign','utm_content','gclid','fbclid'],st=JSON.parse(sessionStorage.getItem('sk_utm')||'{}');k.forEach(function(x){if(q.get(x))st[x]=q.get(x)});if(!st.landing)st.landing=location.pathname;if(!st.ref)st.ref=document.referrer||'directo';sessionStorage.setItem('sk_utm',JSON.stringify(st));
+document.querySelectorAll('form[data-ajax]').forEach(function(f){Object.keys(st).forEach(function(x){var i=document.createElement('input');i.type='hidden';i.name=x;i.value=st[x];f.appendChild(i)});var i=document.createElement('input');i.type='hidden';i.name='pagina';i.value=location.pathname;f.appendChild(i)})}catch(e){}})();
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;if(a.href.indexOf('wa.me')>-1)tk('contact_whatsapp',{page:location.pathname});else if(a.href.indexOf('mailto:')===0)tk('contact_email');else if(a.hash==='#simulador')tk('cta_simulador',{page:location.pathname})});
 (function(){
 var m=document.querySelector('.menu'),n=document.querySelector('.nav');
 if(m&&n)m.addEventListener('click',function(){var o=n.classList.toggle('open');m.setAttribute('aria-expanded',o)});
@@ -12,7 +17,7 @@ fb.forEach(function(b){b.addEventListener('click',function(){var f=b.dataset.fil
 document.querySelectorAll('[data-cat]').forEach(function(c){c.hidden=!(f==='todos'||c.dataset.cat.split(' ').indexOf(f)>-1)});document.querySelectorAll('.pf-h').forEach(function(h){var g=h.nextElementSibling;h.hidden=!g.querySelector('[data-cat]:not([hidden])')})})});
 // Forms (Formspree)
 document.querySelectorAll('form[data-ajax]').forEach(function(f){f.addEventListener('submit',function(e){e.preventDefault();var s=f.querySelector('[data-status]'),b=f.querySelector('button[type=submit]');b.disabled=true;s.textContent='Enviando…';
-fetch(f.action,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}}).then(function(r){if(r.ok){s.textContent='Recibimos tus datos. Te escribimos en menos de 24 horas laborables.';f.reset();}else{s.textContent='No se pudo enviar. Escríbenos por WhatsApp al +593 96 300 2600.';}b.disabled=false}).catch(function(){s.textContent='No se pudo enviar. Revisa tu conexión o escríbenos por WhatsApp.';b.disabled=false})})});
+fetch(f.action,{method:'POST',body:new FormData(f),headers:{Accept:'application/json'}}).then(function(r){if(r.ok){var g=f.dataset.guide;s.innerHTML=g?'¡Listo! <a href="'+g+'" download>Descarga aquí tu guía</a>. También te escribiremos por WhatsApp.':'Recibimos tus datos. Te escribimos en menos de 24 horas laborables.';if(g){var a=document.createElement('a');a.href=g;a.download='';document.body.appendChild(a);a.click();a.remove()}f.reset();tk(g?'download_guide':'generate_lead',{form:(f.querySelector('[name=_subject]')||{}).value||'form'});}else{s.textContent='No se pudo enviar. Escríbenos por WhatsApp al +593 96 300 2600.';}b.disabled=false}).catch(function(){s.textContent='No se pudo enviar. Revisa tu conexión o escríbenos por WhatsApp.';b.disabled=false})})});
 // Inventory
 var root=document.getElementById('inventario');if(!root)return;
 var U=JSON.parse(document.getElementById('inv-data').textContent);
