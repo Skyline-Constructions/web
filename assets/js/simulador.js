@@ -62,7 +62,7 @@ function calc(){
  // Comparativo: 20 % de entrada + 80 % con banco referencial
  var ref=B.find(function(x){return x.id===CFG.bancoRef}), base=amort(P*(1-ENTMIN/100),ref.t,ref.y,'frances'), bi=sum(base,'i');
  var ahorro=bi-ti;
- $('#c-base').textContent=money(bi);$('#c-plan').textContent=money(ti);$('#c-ahorro').textContent=money(Math.max(0,ahorro));
+ renderSav(P,S,bi,ti);$('#c-base').textContent=money(bi);$('#c-plan').textContent=money(ti);$('#c-ahorro').textContent=money(Math.max(0,ahorro));
  $('#c-txt').innerHTML='Si financiaras el 80 % con un banco al '+String(ref.t).replace('.',',')+' % a '+ref.y+' años pagarías <b>'+money(bi)+'</b> en intereses. Con tu plan pagas <b>'+money(ti)+'</b>. '+(ahorro>1?'Te ahorras <b>'+money(ahorro)+'</b>, '+pct(ahorro/P*100)+' del precio de tu departamento.':'');
  // Tabla anual
  var tb=$('#h-tabla tbody'), html='';
@@ -91,6 +91,18 @@ $('#h-csv').addEventListener('click',function(){if(!last)return;var L=[['Periodo
  last.rows.forEach(function(r){L.push(['Hipoteca mes '+r.k,last.b.n,r.c.toFixed(2),r.i.toFixed(2),r.a.toFixed(2),r.s.toFixed(2)])});
  var csv='﻿'+L.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(';')}).join('\n');
  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='Monteza-plan-de-pagos'+(last.u?'-'+last.u:'')+'.csv';document.body.appendChild(a);a.click();a.remove()});
+function renderSav(P,S,bi,ti){var box=document.getElementById('sav');if(!box)return;
+ var ah=Math.max(0,bi-ti);var tot=document.getElementById('sv-total');var from=+(tot.dataset.v||0);tot.dataset.v=ah;
+ var t0=null;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/700);tot.textContent=money(from+(ah-from)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step);
+ var ref=B.find(function(x){return x.id===CFG.bancoRef}),cb=amort(P*0.8,ref.t,ref.y,'frances');var c=cb.length?cb[0].c:0;
+ document.getElementById('sv-eq').innerHTML=ah>1&&c?'Equivale a <b>'+Math.round(ah/c)+' cuotas</b> de hipoteca que ya no pagarás · '+pct(ah/P*100)+' del precio de tu departamento':'Sube tu cuota o tu entrada y mira cómo crece tu ahorro.';
+ var mx=Math.max(bi,1);document.getElementById('sv-bank').style.width='100%';document.getElementById('sv-mine').style.width=Math.max(1.5,ti/mx*100)+'%';
+ document.getElementById('sv-bank-v').textContent=money(bi);document.getElementById('sv-mine-v').textContent=money(ti);
+ var b=bank(),tasa=+el.t.value,anios=+el.y.value,E=P-S,row='';
+ [500,1000,1500,2000,2500,3000].forEach(function(q){var n=Math.min(MAXM,Math.ceil(S/q-1e-9)),sal=Math.max(0,S-q*n),r=amort(sal,tasa,anios,st.sis),i=sum(r,'i'),a=Math.max(0,bi-i);
+  var on=st.modo==='cuota'&&+el.c.value===q;row+='<button type="button" class="stp'+(on?' on':'')+'" data-q="'+q+'"><span>Cuota '+money(q)+'</span><b>'+money(a)+'</b><small>'+(sal>0?'saldo '+money(sal):'pagado al 100 %')+'</small><i style="height:'+Math.max(6,a/Math.max(bi,1)*100)+'%"></i></button>'});
+ var sv=document.getElementById('sv-steps');sv.innerHTML=row;
+ sv.querySelectorAll('.stp').forEach(function(x){x.addEventListener('click',function(){var q=+x.dataset.q;st.modo='cuota';root.querySelectorAll('[data-modo]').forEach(function(m){m.setAttribute('aria-pressed',m.dataset.modo==='cuota')});$('#w-plazo').hidden=true;$('#w-cuota').hidden=false;el.c.value=q;root.querySelectorAll('[data-cuota]').forEach(function(m){m.setAttribute('aria-pressed',+m.dataset.cuota===q)});calc()})})}
 window.simSetUnit=function(id){var u=U.find(function(x){return x.id===id});if(!u||!u.pvp)return;el.u.value=id;el.p.value=u.pvp;calc()};
 setBank(st.banco);
 })();

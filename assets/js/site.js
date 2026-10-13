@@ -44,3 +44,29 @@ draw();
 // Revelado al hacer scroll
 (function(){var r=document.querySelectorAll('[data-reveal]');if(!r.length||!('IntersectionObserver' in window))return;document.documentElement.classList.add('js');
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px',threshold:.08});r.forEach(function(x){io.observe(x)})})();
+// Visor de tipologías Monteza
+(function(){var root=document.getElementById('tipologias');if(!root)return;
+var T=JSON.parse(document.getElementById('tp-data').textContent),cur=0,idx=0;
+var $=function(s){return root.querySelector(s)},media=$('.tp-media'),thumbs=$('.tp-thumbs');
+function show(i){var t=T[cur];idx=(i+t.items.length)%t.items.length;var it=t.items[idx];
+ media.innerHTML=it.k==='img'?'<img src="'+it.src+'" alt="'+it.cap+'" data-zoom="'+it.src+'">':'<video src="'+it.src+'" poster="'+it.th+'" autoplay muted loop playsinline controls></video>';
+ var im=media.querySelector('img');if(im)im.addEventListener('click',function(){var lb=document.querySelector('.lb');if(lb){lb.querySelector('img').src=it.src;lb.classList.add('on')}});
+ $('.tp-cap').textContent=it.cap+(it.k==='vid'?' · video':'');$('.tp-count').textContent=(idx+1)+' / '+t.items.length;
+ thumbs.querySelectorAll('button').forEach(function(b,j){b.setAttribute('aria-current',j===idx)})}
+function tipo(i){cur=i;var t=T[i];root.querySelectorAll('.tp-tab').forEach(function(b,j){b.setAttribute('aria-selected',j===i)});
+ $('.tp-tag').textContent=t.tag;$('.tp-name').textContent=t.n;$('.tp-sub').textContent=t.sub+' · '+t.area;$('.tp-desc').textContent=t.d;
+ $('.tp-ras').innerHTML=t.rasgos.map(function(r){return '<li>'+r+'</li>'}).join('');
+ $('.tp-desde').innerHTML=t.desde?'Desde <b>'+t.desde+'</b> en preventa':'Precio según unidad · consulta el inventario';
+ thumbs.innerHTML=t.items.map(function(it,j){return '<button type="button" role="listitem" aria-label="'+it.cap+'"><img src="'+it.th+'" alt="" loading="lazy">'+(it.k==='vid'?'<span class="play">▶</span>':'')+'</button>'}).join('');
+ thumbs.querySelectorAll('button').forEach(function(b,j){b.addEventListener('click',function(){show(j)})});show(0)}
+root.querySelectorAll('.tp-tab').forEach(function(b,i){b.addEventListener('click',function(){tipo(i)})});
+$('.tp-nav.prev').addEventListener('click',function(){show(idx-1)});$('.tp-nav.next').addEventListener('click',function(){show(idx+1)});
+root.addEventListener('keydown',function(e){if(e.key==='ArrowLeft')show(idx-1);if(e.key==='ArrowRight')show(idx+1)});
+var x0=null;media.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});
+media.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>40)show(idx+(dx<0?1:-1));x0=null},{passive:true});
+tipo(0)})();
+// Contadores animados
+(function(){var c=document.querySelectorAll('[data-count]');if(!c.length||!('IntersectionObserver' in window))return;
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target,n=+el.dataset.count,t0=null;io.unobserve(el);
+function f(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/1400);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)}requestAnimationFrame(f)})},{threshold:.4});
+c.forEach(function(x){x.textContent='0';io.observe(x)})})();
