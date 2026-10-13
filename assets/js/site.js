@@ -33,7 +33,7 @@ f.querySelector('[name=tipo]').value=u.tipo;
 document.getElementById('pick').innerHTML='Unidad seleccionada: <b>'+u.id+'</b> · '+u.tipo+' · '+u.nivel+' · '+u.area.toFixed(2)+' m²'+(u.abierta?' + '+u.abierta.toFixed(2)+' m² de patio o balcón':'')+' · <b>'+fmt(u.pvp)+'</b>';
 document.getElementById('pick').hidden=false;
 var w=document.getElementById('wa-mz');w.href='https://wa.me/593963002600?text='+encodeURIComponent('Hola Skyline, me interesa la unidad '+u.id+' ('+u.tipo+', '+u.area.toFixed(2)+' m², '+fmt(u.pvp)+') de Monteza Residences.');
-document.getElementById('contacto-mz').scrollIntoView({behavior:'smooth'});}
+if(window.simSetUnit)window.simSetUnit(id);document.getElementById('contacto-mz').scrollIntoView({behavior:'smooth'});}
 root.querySelectorAll('[data-tipo]').forEach(function(b){b.addEventListener('click',function(){st.tipo=b.dataset.tipo;root.querySelectorAll('[data-tipo]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});draw()})});
 root.querySelector('#f-nivel').addEventListener('change',function(e){st.nivel=e.target.value;draw()});
 pr.addEventListener('input',function(){st.max=+pr.value;prl.textContent='hasta '+fmt(+pr.value);draw()});prl.textContent='hasta '+fmt(+pr.value);
@@ -41,3 +41,6 @@ root.querySelectorAll('th[data-k]').forEach(function(th){th.addEventListener('cl
 root.querySelectorAll('.cell').forEach(function(c){c.addEventListener('click',function(){pick(c.dataset.u)})});
 draw();
 })();
+// Revelado al hacer scroll
+(function(){var r=document.querySelectorAll('[data-reveal]');if(!r.length||!('IntersectionObserver' in window))return;document.documentElement.classList.add('js');
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px',threshold:.08});r.forEach(function(x){io.observe(x)})})();
