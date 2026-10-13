@@ -75,3 +75,11 @@ tipo(0)})()});
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target,n=+el.dataset.count,t0=null;io.unobserve(el);
 function f(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/1400);el.textContent=Math.round(n*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(f)}requestAnimationFrame(f)})},{threshold:.4});
 c.forEach(function(x){x.textContent='0';io.observe(x)})})();
+// Solicitud por servicio
+(function(){var d=document.getElementById('svc');if(!d)return;var sel=d.querySelector('#svc-s'),wa=d.querySelector('#svc-wa'),base=wa.href.split('?')[0];
+function upd(){wa.href=base+'?text='+encodeURIComponent('Hola Skyline Constructions, quiero información sobre: '+sel.value+'.')}
+sel.addEventListener('change',upd);
+document.querySelectorAll('[data-serv]').forEach(function(b){b.addEventListener('click',function(){sel.value=b.dataset.serv;upd();if(d.showModal)d.showModal();else d.setAttribute('open','');try{if(window.gtag)gtag('event','service_form_open',{servicio:b.dataset.serv})}catch(e){}})});
+d.querySelector('.lead-x').addEventListener('click',function(){d.close()});d.addEventListener('click',function(e){if(e.target===d)d.close()});
+var q=new URLSearchParams(location.search).get('servicio');if(q){[].some.call(sel.options,function(o){if(o.text===q){sel.value=q;upd();d.showModal&&d.showModal();return true}})}})();
+(function(){var s=document.getElementById('c-s'),q=new URLSearchParams(location.search).get('servicio');if(s&&q){[].some.call(s.options,function(o){if(o.text===q){s.value=q;return true}})}})();
