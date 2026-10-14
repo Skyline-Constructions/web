@@ -79,7 +79,41 @@ c.forEach(function(x){x.textContent='0';io.observe(x)})})();
 (function(){var d=document.getElementById('svc');if(!d)return;var sel=d.querySelector('#svc-s'),wa=d.querySelector('#svc-wa'),base=wa.href.split('?')[0];
 function upd(){wa.href=base+'?text='+encodeURIComponent('Hola Skyline Constructions, quiero información sobre: '+sel.value+'.')}
 sel.addEventListener('change',upd);
-document.querySelectorAll('[data-serv]').forEach(function(b){b.addEventListener('click',function(){sel.value=b.dataset.serv;upd();if(d.showModal)d.showModal();else d.setAttribute('open','');try{if(window.gtag)gtag('event','service_form_open',{servicio:b.dataset.serv})}catch(e){}})});
+var fe=d.querySelector('#svc-fecha');if(fe){var t=new Date();t.setDate(t.getDate()+1);fe.min=t.toISOString().slice(0,10);fe.value=fe.min}
+window.openCita=function(sv,diag){sel.value=sv;upd();var sm=d.querySelector('#svc-sum'),dg=d.querySelector('#svc-diag');if(sm){sm.hidden=!diag;sm.innerHTML=diag?'<b>Tu diagnóstico:</b> '+diag:''}if(dg)dg.value=diag||'';if(d.showModal)d.showModal();else d.setAttribute('open','')};
+document.querySelectorAll('[data-serv]').forEach(function(b){b.addEventListener('click',function(){sel.value=b.dataset.serv;upd();var sm=d.querySelector('#svc-sum');if(sm)sm.hidden=true;if(d.showModal)d.showModal();else d.setAttribute('open','');try{if(window.gtag)gtag('event','service_form_open',{servicio:b.dataset.serv})}catch(e){}})});
 d.querySelector('.lead-x').addEventListener('click',function(){d.close()});d.addEventListener('click',function(e){if(e.target===d)d.close()});
 var q=new URLSearchParams(location.search).get('servicio');if(q){[].some.call(sel.options,function(o){if(o.text===q){sel.value=q;upd();d.showModal&&d.showModal();return true}})}})();
 (function(){var s=document.getElementById('c-s'),q=new URLSearchParams(location.search).get('servicio');if(s&&q){[].some.call(s.options,function(o){if(o.text===q){s.value=q;return true}})}})();
+
+// Diagnóstico interactivo
+(function(){var q=document.getElementById('quiz');if(!q)return;var a=[],steps=q.querySelectorAll('.qz-step'),bar=q.querySelector('.qz-bar i'),res=q.querySelector('.qz-res');
+var R={comprar:['Monteza Residences','Tu hogar, con 0 % de interés mientras construimos.','Suites y departamentos de 3 dormitorios en Amagasí del Inca con 20 % de entrada y hasta 36 cuotas sin intereses. En la asesoría simulamos tu plan de pagos con tu presupuesto real.','/portafolio/monteza-residences/#simulador'],
+invertir:['Monteza Residences','Invierte en planos y deja que el tiempo trabaje a tu favor.','Las suites de 1 dormitorio son el formato con mayor crecimiento de búsquedas en Quito. Te mostramos números de arriendo del sector y tu plan de pagos.','/portafolio/monteza-residences/'],
+terreno:['Socio inmobiliario','Tu terreno puede valer mucho más como proyecto.','Analizamos la normativa y el potencial de tu terreno y te proponemos un modelo de asociación: tú aportas el suelo, nosotros el proyecto completo.','/services/#socio-inmobiliario'],
+construir:['Construcción y ejecución de obra','Tu proyecto, con un solo responsable de principio a fin.','Presupuesto abierto, cronograma, control de calidad NEC e informe mensual. En la asesoría revisamos tu idea y te damos una ruta clara.','/services/#ejecucion-proyectos'],
+vender:['Venta y arriendo de tu propiedad','Vende o arrienda más rápido, al precio correcto.','Valoramos tu inmueble con datos de mercado y lo comercializamos con fotografía profesional y campañas digitales segmentadas.','/services/#corretaje'],
+gestion:['Gestión de proyectos','Que tu obra cumpla plazo, presupuesto y calidad.','Coordinamos y supervisamos tu proyecto con reportes mensuales de avance físico y financiero.','/services/#gestion-proyectos']};
+var T={explorando:'Explorar con un experto te ahorra meses de dudas.',comparando:'Compara con números, no con suposiciones.',decidir:'Los mejores resultados llegan a quien decide con información.'};
+var L={explorando:'Explorando ideas',comparando:'Comparando opciones',decidir:'Listo para decidir este mes',seguridad:'Seguridad y respaldo',dinero:'Precio y financiamiento',rapidez:'Rapidez',calidad:'Calidad y diseño'};
+function show(i){steps.forEach(function(s,j){s.hidden=j!==i});res.hidden=i<3;bar.style.width=(Math.min(i,3)/3*100)+'%'}
+function open(){a=[];show(0);if(q.showModal)q.showModal();else q.setAttribute('open','');try{gtag('event','quiz_start')}catch(e){}}
+document.querySelectorAll('[data-quiz]').forEach(function(b){b.addEventListener('click',function(){var n=document.getElementById('nudge');if(n)n.hidden=true;open()})});
+q.querySelectorAll('.qz-o').forEach(function(b){b.addEventListener('click',function(){var st=+b.closest('.qz-step').dataset.step;a[st]=b.dataset.v;
+ if(st<2)return show(st+1);var r=R[a[0]];q.querySelector('.qz-t').textContent=r[1];q.querySelector('.qz-d').textContent=r[2];q.querySelector('.qz-h').textContent=T[a[1]];q.querySelector('.qz-more').href=r[3];show(3);
+ try{gtag('event','quiz_complete',{objetivo:a[0]})}catch(e){}})});
+q.querySelector('.qz-go').addEventListener('click',function(){var r=R[a[0]],t=q.querySelector('[data-step="0"] [data-v="'+a[0]+'"]').textContent;q.close();window.openCita&&window.openCita(r[0],t+' · '+L[a[1]]+' · prioridad: '+L[a[2]])});
+q.querySelector('.lead-x').addEventListener('click',function(){q.close()});q.addEventListener('click',function(e){if(e.target===q)q.close()});
+// Invitación suave: al 55 % de lectura o al intentar salir (una vez por sesión)
+var n=document.getElementById('nudge'),seen=false;try{seen=sessionStorage.getItem('sk-nudge')}catch(e){}
+function nudge(){if(seen||!n||document.querySelector('dialog[open]'))return;seen=1;try{sessionStorage.setItem('sk-nudge','1')}catch(e){}n.hidden=false;try{gtag('event','nudge_show')}catch(e){}}
+if(n){n.querySelector('.nx').addEventListener('click',function(){n.hidden=true});
+ addEventListener('scroll',function(){if(scrollY/(document.body.scrollHeight-innerHeight)>.55)nudge()},{passive:true});
+ document.addEventListener('mouseout',function(e){if(!e.relatedTarget&&e.clientY<5)nudge()})}
+var wk=document.getElementById('cb-week');if(wk){var d=new Date(),f=new Date(d);f.setDate(d.getDate()+((5-d.getDay()+7)%7||7));wk.textContent='Agenda abierta hasta el viernes '+f.getDate()+' de '+f.toLocaleDateString('es-EC',{month:'long'})}
+})();
+// Tema claro / oscuro
+(function(){var b=document.getElementById('thm');if(!b)return;var h=document.documentElement;
+function lab(){var c=h.dataset.theme==='claro';b.setAttribute('aria-label',c?'Cambiar a tema oscuro':'Cambiar a tema claro');b.setAttribute('aria-pressed',c);
+ document.querySelectorAll('img[src*="-negativo"],img[data-neg]').forEach(function(i){if(!i.closest('.keep-dark')&&!i.closest('.hero')&&!i.closest('.feature')&&!i.closest('.lp-hero')){if(!i.dataset.neg)i.dataset.neg=i.getAttribute('src');var pos=i.dataset.neg.replace('horizontal-negativo','horizontal-color-claro').replace('vertical-negativo','vertical-color-claro');i.src=c?pos:i.dataset.neg}})}
+b.addEventListener('click',function(){h.dataset.theme=h.dataset.theme==='claro'?'oscuro':'claro';try{localStorage.setItem('sk-theme',h.dataset.theme)}catch(e){}lab();try{gtag('event','theme_change',{tema:h.dataset.theme})}catch(e){}});lab()})();

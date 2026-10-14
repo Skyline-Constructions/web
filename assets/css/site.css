@@ -493,3 +493,66 @@ dialog.lead::backdrop{background:#1d1d1bcc;backdrop-filter:blur(3px)}
 .vals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media (max-width:900px){.vals{grid-template-columns:1fr 1fr}}@media (max-width:560px){.vals{grid-template-columns:1fr}}
 .val{border:1px solid #ffffff22;padding:22px}.val h3{font-size:24px;color:var(--oro);margin-bottom:8px}.val p{color:var(--niebla);font-size:15px;margin:0}
 .row.svl{text-decoration:none;color:inherit}.row.svl:hover h3{color:var(--acento)}.row.svl b{color:var(--acento);white-space:nowrap}
+/* ===== Conversión 2.7: cita, diagnóstico, invitación ===== */
+.fab-cita{position:fixed;left:18px;bottom:18px;z-index:61;display:flex;align-items:center;gap:10px;background:var(--carbon);color:#fff;border:2px solid var(--oro);border-radius:40px;padding:13px 20px 13px 16px;font:800 15px var(--body);cursor:pointer;box-shadow:0 10px 30px #0005;transition:transform .25s}
+.fab-cita:hover{transform:translateY(-3px);background:var(--oro);color:var(--carbon)}
+.pulse{width:10px;height:10px;border-radius:50%;background:var(--oro);box-shadow:0 0 0 0 #FFC961aa;animation:pl 1.8s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 12px #FFC96100}100%{box-shadow:0 0 0 0 #FFC96100}}
+@media (max-width:760px){.fab-cita{display:none}}
+.nudge{position:fixed;right:18px;bottom:96px;z-index:62;width:min(360px,calc(100vw - 36px));background:#fff;color:var(--carbon);border-top:5px solid var(--oro);padding:22px 22px 20px;box-shadow:0 24px 60px #0006;animation:nin .5s cubic-bezier(.2,.7,.2,1)}
+.nudge b{font:400 22px/1.2 var(--display);display:block;padding-right:20px}.nudge p{font-size:15px;color:var(--acero);margin:10px 0 14px}
+.nudge .nx{position:absolute;top:6px;right:10px;border:0;background:none;font:400 28px var(--display);cursor:pointer;color:var(--acero)}
+@keyframes nin{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+@media (max-width:760px){.nudge{bottom:70px;right:12px}}
+.qz-bar{height:6px;background:var(--hormigon);margin:8px 0 22px}.qz-bar i{display:block;height:100%;background:var(--oro);width:0;transition:width .4s}
+.qz-n{font-size:13px;font-weight:800;color:var(--acento);letter-spacing:.1em;text-transform:uppercase;margin:0}
+.qz h3{font-size:clamp(26px,3vw,34px);margin:6px 0 18px}
+.qz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:520px){.qz-opts{grid-template-columns:1fr}}
+.qz-o{text-align:left;padding:16px 18px;border:1px solid var(--linea);background:#fff;font:600 16px var(--body);cursor:pointer;border-radius:var(--r);transition:all .2s;color:var(--carbon)}
+.qz-o:hover{border-color:var(--oro);background:#fff8e6;transform:translateY(-2px)}
+.qz-step{animation:nin .35s ease}.qz-res{animation:nin .4s ease}
+.citaband{background:linear-gradient(120deg,#1D1D1B 0%,#241B0C 60%,#3a2b12 100%);color:#F2F0EA;padding-block:clamp(56px,7vw,96px);position:relative;overflow:hidden}
+.citaband::after{content:"";position:absolute;right:-80px;top:-60px;width:420px;height:420px;background:url(/assets/logo/skyline-isotipo-mono-dorado.svg) no-repeat center/contain;opacity:.08}
+.citaband .wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;position:relative;z-index:1}@media (max-width:860px){.citaband .wrap{grid-template-columns:1fr}}
+.citaband .kicker{color:var(--oro)}.citaband h2{color:#fff}.citaband p{color:#D9CFBC;margin-top:14px;max-width:56ch}
+.cb-act{display:grid;gap:12px}.cb-act .btn{justify-content:center;width:100%}.btn.big{font-size:18px;padding:20px 26px;box-shadow:0 0 0 0 #FFC96188;animation:pl2 2.4s infinite}
+@keyframes pl2{70%{box-shadow:0 0 0 16px #FFC96100}100%{box-shadow:0 0 0 0 #FFC96100}}
+.cb-slots{display:flex;align-items:center;gap:8px;font-size:14px;color:#D9CFBC!important;margin:4px 0 0!important}.cb-slots .dot{width:8px;height:8px;border-radius:50%;background:#3ccf6e;box-shadow:0 0 0 4px #3ccf6e33}
+button.btn{font-family:var(--body)}.citaband .btn-line,.hero .btn-line{color:#fff}
+/* Selector de tema */
+.thm{order:2;margin-left:6px;width:42px;height:42px;border-radius:50%;border:1px solid #ffffff40;background:transparent;color:var(--oro);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .4s}
+.thm:hover{transform:rotate(25deg);border-color:var(--oro)}.thm .ic-moon{display:none}
+.hdr .wrap{gap:14px}.hdr .logo{margin-right:auto}
+@media (max-width:980px){.thm{order:0}}
+/* ===== Tema claro ===== */
+html[data-theme=claro]{--niebla:#5E5C57}
+html[data-theme=claro] .thm .ic-sun{display:none}html[data-theme=claro] .thm .ic-moon{display:inline}
+html[data-theme=claro] .hdr{background:rgba(244,243,239,.95);color:var(--carbon);border-color:var(--linea)}
+html[data-theme=claro] .nav a{color:var(--carbon)}html[data-theme=claro] .nav a:hover,html[data-theme=claro] .nav a[aria-current=page]{color:var(--carbon)}
+html[data-theme=claro] .thm,html[data-theme=claro] .menu{border-color:var(--linea);color:var(--acento)}
+@media (max-width:980px){html[data-theme=claro] .nav{background:var(--papel)}}
+html[data-theme=claro] .dark,html[data-theme=claro] .phero,html[data-theme=claro] .counters,html[data-theme=claro] .marquee,html[data-theme=claro] .brandwall,html[data-theme=claro] .tipos,html[data-theme=claro] .ftr,html[data-theme=claro] .brandband,html[data-theme=claro] .lp.dark,html[data-theme=claro] .hookband.dark{background:#fff;color:var(--carbon)}
+html[data-theme=claro] .earth,html[data-theme=claro] .guia,html[data-theme=claro] .citaband{background:linear-gradient(120deg,#F6EEDC,#EADBB8);color:var(--carbon)}
+html[data-theme=claro] :is(.dark,.phero,.counters,.brandwall,.tipos,.ftr,.earth,.guia,.citaband,.lp.dark) :is(h1,h2,h3,b,.tagline){color:var(--carbon)}
+html[data-theme=claro] :is(.dark,.phero,.earth,.guia,.citaband,.brandwall,.counters) :is(.lead,p,span,li){color:var(--acero)}
+html[data-theme=claro] :is(.dark,.earth,.citaband,.guia,.tipos,.phero) .kicker{color:var(--acento)}
+html[data-theme=claro] :is(.dark,.earth,.tipos,.citaband,.phero,.brandwall) .btn-line{color:var(--carbon)!important}
+html[data-theme=claro] .crumbs,html[data-theme=claro] .crumbs a{color:var(--acero)}
+html[data-theme=claro] .counters b,html[data-theme=claro] .counters sup,html[data-theme=claro] .facts b{color:var(--acento)}
+html[data-theme=claro] .cnt-grid div,html[data-theme=claro] .facts,html[data-theme=claro] .facts div,html[data-theme=claro] :is(.dark,.earth) :is(.rows,.row){border-color:var(--linea)}
+html[data-theme=claro] .marquee{color:var(--acento);border-color:var(--linea)}html[data-theme=claro] .mq i{background:var(--acento)}
+html[data-theme=claro] .ftr a,html[data-theme=claro] .ftr{color:var(--acero)}html[data-theme=claro] .ftr h4{color:var(--carbon)}html[data-theme=claro] .ftr .base{border-color:var(--linea)}
+html[data-theme=claro] .ftxt{color:var(--carbon);border-color:var(--linea)}
+html[data-theme=claro] .flogos img[src*=trivida],html[data-theme=claro] .flogos img[src*=slp]{filter:invert(.85)}
+html[data-theme=claro] .dark .card,html[data-theme=claro] .caso,html[data-theme=claro] .bento,html[data-theme=claro] .val,html[data-theme=claro] .tp-tab,html[data-theme=claro] .tp-view{background:#F4F3EF;border-color:var(--linea)}
+html[data-theme=claro] .tp-tab b,html[data-theme=claro] .tp-name{color:var(--carbon)}html[data-theme=claro] .tp-tab[aria-selected=true]{background:var(--oro)}
+html[data-theme=claro] .tp-info,html[data-theme=claro] .tp-desc{color:var(--acero)}html[data-theme=claro] .tp-sub,html[data-theme=claro] .val h3,html[data-theme=claro] .bento .apl,html[data-theme=claro] .vn{color:var(--acento)}
+html[data-theme=claro] .bento p{color:var(--acero)}html[data-theme=claro] .mz-facts span{color:var(--acero)}
+html[data-theme=claro] .sim-out,html[data-theme=claro] .sav{background:#fff;color:var(--carbon);border:1px solid var(--linea)}
+html[data-theme=claro] .sim-out .kpi b,html[data-theme=claro] .sav-head h3{color:var(--carbon)}html[data-theme=claro] .kpi.big b,html[data-theme=claro] .sav-big b{color:var(--acento)}
+html[data-theme=claro] .sim-out .msg,html[data-theme=claro] .sav-big small,html[data-theme=claro] .sav-quotes p{color:var(--acero)}html[data-theme=claro] .sim-out .btn-line{color:var(--carbon)}
+html[data-theme=claro] .stp{background:#F4F3EF;color:var(--carbon)}html[data-theme=claro] .stp b{color:var(--carbon)}html[data-theme=claro] .track{background:var(--hormigon)}
+html[data-theme=claro] .hookband.dark{border-top-color:var(--oro)}
+html[data-theme=claro] .fab-cita{background:#fff;color:var(--carbon)}
+html[data-theme=claro] .citaband .btn-line{color:var(--carbon)}html[data-theme=claro] .cb-slots{color:var(--acero)!important}
+html[data-theme=claro] .sig-by{color:#E6E5E1}
