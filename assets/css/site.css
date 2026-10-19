@@ -167,7 +167,7 @@ table.inv{width:100%;border-collapse:collapse;font-size:15px;min-width:720px;fon
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
 /* Footer */
 .ftr{background:var(--carbon);color:#C9C6BD;padding-block:72px 32px;font-size:15px}
-.ftr .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:40px}
+.ftr .cols{display:grid;grid-template-columns:1.8fr 1fr 1.3fr .9fr 1.4fr;gap:36px}
 .ftr h4{font:700 14px var(--body);letter-spacing:.12em;color:#fff;margin:0 0 14px}
 .ftr a{text-decoration:none;color:#C9C6BD}.ftr a:hover{color:var(--oro)}
 .ftr ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}
@@ -584,3 +584,6 @@ html[data-theme=claro] .ribbon-wa{background:var(--papel)}
 @keyframes wab{0%,86%,100%{transform:none}89%{transform:translateY(-8px) rotate(-8deg)}92%{transform:translateY(0) rotate(6deg)}95%{transform:translateY(-4px)}}
 .wa::before{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 #25D36699;animation:pl 2.2s infinite}
 .fab-cita{animation:fabin .8s 1.2s both}@keyframes fabin{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+
+.seo-h1{font:600 12px/1.5 var(--body,Manrope),sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--oro,#FFC961);text-align:center;margin:26px auto 0;max-width:60ch}
+@media (max-width:1100px) and (min-width:861px){.ftr .cols{grid-template-columns:repeat(3,1fr)}}
