@@ -556,3 +556,31 @@ html[data-theme=claro] .hookband.dark{border-top-color:var(--oro)}
 html[data-theme=claro] .fab-cita{background:#fff;color:var(--carbon)}
 html[data-theme=claro] .citaband .btn-line{color:var(--carbon)}html[data-theme=claro] .cb-slots{color:var(--acero)!important}
 html[data-theme=claro] .sig-by{color:#E6E5E1}
+/* ===== Lanzamiento final ===== */
+.gcards{grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+@media (max-width:1100px){.gcards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:620px){.gcards{grid-template-columns:minmax(0,1fr)}}
+.gcard{height:100%;min-width:0}.glogo{height:120px;justify-content:flex-start}.glogo img{max-width:100%;max-height:96px}
+.gcard h3{min-height:2.3em}
+.bio img{filter:grayscale(1) contrast(1.05);border:4px solid var(--oro);box-shadow:0 12px 30px #0002}
+/* Marca visible en encabezados internos */
+.phero{overflow:hidden}.phero .wrap{position:relative;z-index:1}
+.ph-iso{position:absolute;right:4%;top:50%;transform:translateY(-50%);height:118%;opacity:.12;pointer-events:none}
+.ph-ag{position:absolute;left:0;right:0;bottom:0;width:100%;opacity:.25;pointer-events:none}
+@media (max-width:760px){.ph-iso{height:80%;right:-20%}}
+.ribbon-wa{background:#fff;border-bottom:1px solid var(--linea)}
+.ribbon-wa .wrap{display:flex;align-items:center;gap:22px;padding-block:16px;flex-wrap:wrap}
+.rb-logo{height:40px;width:auto}.ribbon-wa p{margin:0;flex:1;min-width:220px;font-size:15px;color:var(--acero)}.ribbon-wa p b{color:var(--carbon)}
+html[data-theme=claro] .ribbon-wa{background:var(--papel)}
+/* Botón WhatsApp de cierre */
+.btn-wa{background:#1f9d55;color:#fff;border:0;position:relative;overflow:hidden}.btn-wa:hover{background:#178a49}
+.btn-wa svg{width:20px;height:20px;fill:#fff;flex:0 0 auto}.citaband .btn-wa{justify-content:center;width:100%}
+/* Botones en movimiento */
+.btn{transition:transform .25s,box-shadow .25s,background .25s}.btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px #0003}
+.btn-oro,.btn-wa{position:relative;overflow:hidden;isolation:isolate}
+.btn-oro::after,.btn-wa::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,#ffffff8c,transparent);transform:skewX(-20deg);animation:sweep 4.2s ease-in-out infinite;z-index:-1}
+.btn-wa::after{animation-delay:1.4s}
+@keyframes sweep{0%,60%{left:-60%}85%,100%{left:130%}}
+.wa{animation:wab 5s ease-in-out infinite}
+@keyframes wab{0%,86%,100%{transform:none}89%{transform:translateY(-8px) rotate(-8deg)}92%{transform:translateY(0) rotate(6deg)}95%{transform:translateY(-4px)}}
+.wa::before{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 #25D36699;animation:pl 2.2s infinite}
+.fab-cita{animation:fabin .8s 1.2s both}@keyframes fabin{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
