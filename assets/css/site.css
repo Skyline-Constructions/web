@@ -601,3 +601,11 @@ html[data-theme=claro] .socio{background:#fff}
 .sv-pasos b{display:block}.sv-pasos span{font-size:15px;opacity:.85}
 .sec-note{font-size:12px;opacity:.75;margin-top:10px;grid-column:1/-1}
 .gal img,.tp-stage img,.esp img,.casos img,.sv-img img,.cover{-webkit-user-drag:none;user-select:none}
+.legal-doc{max-width:860px}.legal-doc h2{font-size:clamp(26px,3vw,36px);margin-bottom:16px}.legal-doc p,.legal-doc li{line-height:1.7}.legal-doc ul,.legal-doc ol{padding-left:22px;display:grid;gap:10px}.legal-doc a{color:var(--acento,#7D5F25);text-decoration:underline}
+.sec.dark .legal-doc a{color:var(--oro,#FFC961)}
+.legal-links{display:flex;flex-wrap:wrap;gap:8px 22px;padding:18px 0;border-top:1px solid #ffffff1a;font-size:14px}
+.legal-links a,.legal-links button{color:#B4B1A8;background:none;border:0;padding:0;font:inherit;cursor:pointer;text-decoration:none}.legal-links a:hover,.legal-links button:hover{color:var(--oro,#FFC961)}
+.ck{position:fixed;left:16px;right:16px;bottom:16px;z-index:90;max-width:560px;background:#1D1D1B;color:#E6E5E1;border:1px solid #FFC96155;padding:20px 22px;box-shadow:0 20px 50px #0007}
+.ck p{font-size:14px;line-height:1.6;margin-bottom:12px}.ck a{color:var(--oro,#FFC961)}.ck .btns{gap:10px;margin:0}.ck .btn{padding:10px 16px;font-size:14px}
+@media (max-width:760px){.ck{bottom:76px}}
+.ck .btn-line{color:#E6E5E1!important;border-color:#E6E5E1}
