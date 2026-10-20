@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /assets/docs/
 
 Sitemap: https://www.skylineconstructions.build/sitemap.xml
