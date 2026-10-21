@@ -669,3 +669,7 @@ html[data-theme=claro] .socio{background:#fff}
 @keyframes tkmove{to{transform:translateX(-50%)}}
 @media (max-width:760px){.showcase{min-height:620px;height:88svh}.sc-in{padding-bottom:120px;justify-content:flex-end}.sc-t{font-size:clamp(32px,9vw,46px)}.sc-d{font-size:15px}.sc-dim{display:none}.sc-l{display:none}.sc-dots{gap:8px}.sc-count{display:none}.sc-btns button{width:40px;height:40px}.sc-veil{background:linear-gradient(0deg,rgba(20,20,18,.95) 0%,rgba(20,20,18,.65) 55%,rgba(20,20,18,.25) 100%)}.tk-h{padding:0 12px;font-size:10px}}
 @media (prefers-reduced-motion:reduce){.sc-media{transition:none;transform:none!important}.sc-slide,.sc-slide.on{transition:none}.tk-r{animation:none}.sc-grid::before,.sc-grid::after{animation:none}}
+.showcase{height:calc(100vh - 84px);height:calc(100svh - 84px);max-height:none}
+@media (max-width:760px){.showcase{height:calc(100svh - 70px)}}
+.showcase{height:calc(100vh - 136px);height:calc(100svh - 136px);min-height:560px}
+@media (max-width:760px){.showcase{height:calc(100svh - 190px);min-height:540px}}
