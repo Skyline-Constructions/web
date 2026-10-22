@@ -2,7 +2,8 @@
 (function(){
 var root=document.getElementById('simulador');if(!root)return;
 var CFG=JSON.parse(document.getElementById('sim-cfg').textContent);
-var U=CFG.units, B=CFG.bancos, MAXM=CFG.mesesEntrega, ENTMIN=CFG.entradaMin, TD=CFG.tasaDirecta;
+var U=CFG.units, B=CFG.bancos, MAXM=CFG.mesesEntrega, ENTMIN=CFG.entradaMin||5, SUG=CFG.entradaSug||20;
+var PRIV=['pichincha','pacifico','produbanco','otra'];
 var $=function(s){return root.querySelector(s)};
 var money=function(v){return 'USD '+Math.round(v).toLocaleString('es-EC')};
 var money2=function(v){return 'USD '+v.toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2})};
@@ -10,104 +11,155 @@ var pct=function(v){return (Math.round(v*10)/10).toLocaleString('es-EC')+' %'};
 var st={modo:'plazo',sis:'frances',banco:'pichincha',full:false};
 var el={u:$('#s-unidad'),p:$('#s-precio'),e:$('#s-ent'),ev:$('#s-ent-v'),m:$('#s-meses'),mv:$('#s-meses-v'),c:$('#s-cuota'),
  bk:$('#h-banco'),t:$('#h-tasa'),y:$('#h-anios'),yv:$('#h-anios-v')};
-// Opciones de unidades
 var g={};U.forEach(function(u){if(!u.pvp)return;(g[u.tipo]=g[u.tipo]||[]).push(u)});
 Object.keys(g).forEach(function(t){var og=document.createElement('optgroup');og.label=t;g[t].forEach(function(u){var o=document.createElement('option');o.value=u.id;o.textContent=u.id+' · '+u.nivel+' · '+u.area.toFixed(2)+' m² · '+money(u.pvp);og.appendChild(o)});el.u.appendChild(og)});
 B.forEach(function(b){var o=document.createElement('option');o.value=b.id;o.textContent=b.n;el.bk.appendChild(o)});
-function bank(){return B.find(function(b){return b.id===st.banco})}
-function setBank(id){st.banco=id;el.bk.value=id;var b=bank();el.t.value=b.t;el.y.max=b.ymax;el.y.value=Math.min(b.y,b.ymax);calc()}
-// Amortización
+function bankOf(id){return B.find(function(b){return b.id===id})||B[0]}
+function unitOf(id){return U.find(function(x){return x.id===id})}
 function amort(L,tasa,anios,sis){var n=anios*12,i=tasa/100/12,rows=[],s=L,c;
  if(L<=0)return rows;
  if(sis==='frances'){c=i?L*i/(1-Math.pow(1+i,-n)):L/n;for(var k=1;k<=n;k++){var it=s*i,ca=c-it;s-=ca;rows.push({k:k,c:c,i:it,a:ca,s:Math.max(0,s)})}}
  else{var ca2=L/n;for(var k2=1;k2<=n;k2++){var it2=s*i;s-=ca2;rows.push({k:k2,c:ca2+it2,i:it2,a:ca2,s:Math.max(0,s)})}}
  return rows}
 function sum(r,k){return r.reduce(function(a,x){return a+x[k]},0)}
-var last=null,used=false;function used1(){if(used)return;used=true;try{if(window.gtag)gtag('event','simulator_use')}catch(e){}}
-function calc(){
- var P=+el.p.value||0, e=Math.max(ENTMIN,+el.e.value), E=P*e/100, S=P-E;
- el.ev.textContent=e+' % · '+money(E);
- var n,cu,paid,saldo;
- if(st.modo==='plazo'){n=+el.m.value;cu=S/n;paid=S;saldo=0;el.mv.textContent=n+(n===1?' mes':' meses')}
- else if(st.modo==='cuota'){var c=Math.max(0,+el.c.value||0);if(c<=0){n=0;cu=0;paid=0;saldo=S}else{n=Math.min(MAXM,Math.ceil(S/c-1e-9));cu=c;paid=Math.min(S,c*n);saldo=S-paid;if(saldo<0.5)saldo=0}}
+/* Motor puro: recibe un estado y devuelve todos los resultados */
+function simulate(s){
+ var P=Math.max(0,+s.p||0), e=Math.min(100,Math.max(ENTMIN,+s.e||SUG)), E=P*e/100, S=P-E, n,cu,paid,saldo;
+ if(s.modo==='plazo'){n=Math.max(1,Math.min(MAXM,+s.n||MAXM));cu=S/n;paid=S;saldo=0}
+ else if(s.modo==='cuota'){var c=Math.max(0,+s.c||0);if(c<=0||S<=0){n=0;cu=0;paid=0;saldo=S}else{n=Math.min(MAXM,Math.ceil(S/c-1e-9));cu=c;paid=Math.min(S,c*n);saldo=S-paid;if(saldo<0.5)saldo=0}}
  else{n=0;cu=0;paid=0;saldo=S}
- var pagadoEntrega=E+paid, pctEnt=P?pagadoEntrega/P*100:0;
- // Resultados crédito directo
- $('#r-ent').textContent=money(E);
- $('#r-cuota').textContent=n?money2(cu):'—';
- var ult=S-cu*(n-1);
- $('#r-cuota-l').textContent=(st.modo==='cuota'&&saldo===0&&n>1&&Math.abs(ult-cu)>0.5)?'Cuota mensual sin intereses · la última, de '+money2(ult):'Cuota mensual directa · sin intereses';
- $('#r-n').textContent=n?n+(n===1?' cuota':' cuotas'):'Sin cuotas';
- $('#r-ent-pct').textContent=pct(pctEnt);
- $('#r-saldo').textContent=saldo>0?money(saldo):'USD 0';
- $('#r-bar').style.width=Math.min(100,pctEnt)+'%';
- $('#r-msg').innerHTML=saldo>0?'Recibes tus llaves con el <b>'+pct(pctEnt)+'</b> de tu departamento pagado. El saldo de <b>'+money(saldo)+'</b> lo cubres con crédito hipotecario, simulado abajo'+(saldo<P*0.1?', o con un pago final de ahorro antes de la entrega.':'.'):'Recibes tus llaves con tu departamento <b>100 % pagado</b>, sin deuda bancaria y sin intereses.';
- // Hipotecario
- var hip=$('#sim-hip'), b=bank(), tasa=+el.t.value, anios=+el.y.value;el.yv.textContent=anios+' años';
- hip.classList.toggle('off',saldo<=0);
+ if(S<=0){n=0;cu=0;paid=0;saldo=0}
+ var b=bankOf(s.b), tasa=+s.t, anios=+s.y, rows=amort(saldo,tasa,anios,s.sis||'frances');
+ var c1=rows.length?rows[0].c:0, ti=sum(rows,'i');
+ var ref=bankOf(CFG.bancoRef), base=amort(P*0.8,ref.t,ref.y,'frances'), bi=sum(base,'i'), cb=base.length?base[0].c:0;
+ var ult=n?S-cu*(n-1):0, pagado=E+paid, pctEnt=P?pagado/P*100:0;
  var warn=[];
  if(b.cap&&P>b.cap)warn.push('El precio de esta unidad ('+money(P)+') supera el tope de '+money(b.cap)+' para '+b.n+'. Elige otra entidad o una unidad dentro del tope.');
  if(b.min&&P<=b.min)warn.push('Con este precio la unidad corresponde al segmento VIS, no VIP.');
  if(b.loanMax&&saldo>b.loanMax)warn.push('El préstamo ('+money(saldo)+') supera el máximo de '+money(b.loanMax)+'; la diferencia debe cubrirse antes de la entrega.');
+ if(PRIV.indexOf(b.id)>=0&&saldo>P*0.8+1)warn.push('Los bancos suelen financiar hasta el 80 % del valor. Te falta pagar '+money(saldo-P*0.8)+' antes de la entrega: súmalo a tus cuotas sin intereses y te ayudamos a armarlo.');
  if(anios>b.ymax)warn.push('Plazo máximo referencial para esta entidad: '+b.ymax+' años.');
  if(tasa>CFG.tasaMaxLegal)warn.push('La tasa supera la máxima legal vigente ('+String(CFG.tasaMaxLegal).replace('.',',')+' %).');
+ return {s:s,u:s.u||'',unit:unitOf(s.u),P:P,e:e,E:E,S:S,n:n,cu:cu,ult:ult,paid:paid,saldo:saldo,pagado:pagado,pctEnt:pctEnt,b:b,tasa:tasa,anios:anios,sis:s.sis||'frances',rows:rows,c1:c1,ti:ti,bi:bi,cb:cb,ahorro:Math.max(0,bi-ti),total:P+ti,ing:c1/CFG.relacionCuotaIngreso,warn:warn,modo:s.modo};
+}
+function getState(){return {u:el.u.value,p:+el.p.value||0,e:+el.e.value,modo:st.modo,n:+el.m.value,c:+el.c.value||0,b:st.banco,t:+el.t.value,y:+el.y.value,sis:st.sis}}
+function round50(v){return Math.max(100,Math.ceil(v/50)*50)}
+function preset(k,base){var P=base.p,s={u:base.u,p:P,b:base.b,t:base.t,y:base.y,sis:base.sis};
+ if(k==='ligero'){s.e=5;s.modo='cuota';s.c=round50(P*0.15/MAXM);s.n=MAXM}
+ else if(k==='equilibrado'){s.e=20;s.modo='cuota';s.c=round50(P*0.2/MAXM);s.n=MAXM}
+ else{s.e=20;s.modo='plazo';s.n=MAXM;s.c=0}
+ var bk=bankOf(s.b);if(bk.cap&&P>bk.cap||bk.min&&P<=bk.min){s.b='pichincha';s.t=bankOf('pichincha').t;s.y=Math.min(s.y,20)}
+ return s}
+var PRESET_N={ligero:'Empieza ligero',equilibrado:'Equilibrado (sugerido)',cero:'Cero deuda'};
+function applyState(s,silent){
+ if(s.u&&unitOf(s.u)){el.u.value=s.u}else el.u.value='';
+ el.p.value=Math.round(s.p||0);el.e.value=s.e||SUG;
+ st.modo=s.modo||'plazo';root.querySelectorAll('[data-modo]').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.modo===st.modo)});$('#w-plazo').hidden=st.modo!=='plazo';$('#w-cuota').hidden=st.modo!=='cuota';
+ if(s.n)el.m.value=s.n;if(s.c)el.c.value=s.c;root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',+x.dataset.cuota===+el.c.value)});
+ st.banco=s.b||'pichincha';el.bk.value=st.banco;var bk=bankOf(st.banco);el.y.max=bk.ymax;el.t.value=(s.t!=null&&s.t!=='')?s.t:bk.t;el.y.value=s.y||Math.min(bk.y,bk.ymax);
+ st.sis=s.sis||'frances';root.querySelectorAll('[data-sis]').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.sis===st.sis)});
+ if(!silent)calc()}
+function setBank(id){st.banco=id;el.bk.value=id;var b=bankOf(id);el.t.value=b.t;el.y.max=b.ymax;el.y.value=Math.min(b.y,b.ymax);calc()}
+var last=null,used=false;function used1(){if(used)return;used=true;try{if(window.gtag)gtag('event','simulator_use')}catch(e){}}
+function calc(){
+ var r=simulate(getState());last=r;var P=r.P,e=r.e;
+ el.ev.textContent=e+' % · '+money(r.E)+(e===SUG?' · sugerido':'');
+ root.querySelectorAll('[data-ent]').forEach(function(x){x.setAttribute('aria-pressed',+x.dataset.ent===e)});
+ var tip=$('#s-ent-tip');
+ if(e<SUG){var d=P*(SUG-e)/100,ri=amort(d,r.tasa||7.5,r.anios||20,'frances'),di=sum(ri,'i');
+  tip.className='ent-tip low';tip.innerHTML='Separas hoy con solo <b>'+money(r.E)+'</b> y completas la diferencia en cuotas <b>sin intereses</b>. Si llegas al 20 % ('+money(P*SUG/100)+') antes de la entrega, tu préstamo baja '+money(d)+' y te ahorras cerca de <b>'+money(di)+'</b> en intereses.'}
+ else if(e===SUG){tip.className='ent-tip ok';tip.innerHTML='<b>Gran decisión.</b> El 20 % es la entrada que piden los bancos y te abre las mejores tasas.'}
+ else{tip.className='ent-tip ok';tip.innerHTML='<b>Excelente.</b> Cada punto extra de entrada reduce tu deuda y lo que pagas en intereses.'}
+ if(st.modo==='plazo')el.mv.textContent=r.n+(r.n===1?' mes':' meses');
+ $('#r-ent').textContent=money(r.E);
+ $('#r-cuota').textContent=r.n?money2(r.cu):'—';
+ $('#r-cuota-l').textContent=(st.modo==='cuota'&&r.saldo===0&&r.n>1&&Math.abs(r.ult-r.cu)>0.5)?'Cuota mensual sin intereses · la última, de '+money2(r.ult):'Cuota mensual directa · sin intereses';
+ $('#r-n').textContent=r.n?r.n+(r.n===1?' cuota':' cuotas'):'Sin cuotas';
+ $('#r-ent-pct').textContent=pct(r.pctEnt);
+ $('#r-saldo').textContent=r.saldo>0?money(r.saldo):'USD 0';
+ $('#r-bar').style.width=Math.min(100,r.pctEnt)+'%';
+ $('#r-msg').innerHTML=r.saldo>0?'Recibes tus llaves con el <b>'+pct(r.pctEnt)+'</b> de tu departamento pagado. El saldo de <b>'+money(r.saldo)+'</b> lo cubres con crédito hipotecario, simulado abajo'+(r.saldo<P*0.1?', o con un pago final de ahorro antes de la entrega.':'.'):'Recibes tus llaves con tu departamento <b>100 % pagado</b>, sin deuda bancaria y sin intereses.';
+ var b=r.b;el.yv.textContent=r.anios+' años';
+ $('#sim-hip').classList.toggle('off',r.saldo<=0);
  $('#h-note').textContent=b.note;
- $('#h-warn').innerHTML=warn.map(function(w){return '<li>'+w+'</li>'}).join('');$('#h-warn').hidden=!warn.length;
- var rows=amort(saldo,tasa,anios,st.sis);
- var c1=rows.length?rows[0].c:0, ti=sum(rows,'i');
- $('#h-cuota').textContent=rows.length?money2(c1):'—';
- $('#h-cuota-l').textContent=st.sis==='frances'?'Cuota mensual fija':'Primera cuota (luego disminuye)';
- $('#h-int').textContent=money(ti);$('#h-tot').textContent=money(saldo+ti);
- $('#h-ing').textContent=rows.length?money(c1/CFG.relacionCuotaIngreso):'—';
- // Comparativo: 20 % de entrada + 80 % con banco referencial
- var ref=B.find(function(x){return x.id===CFG.bancoRef}), base=amort(P*(1-ENTMIN/100),ref.t,ref.y,'frances'), bi=sum(base,'i');
- var ahorro=bi-ti;
- renderSav(P,S,bi,ti);$('#c-base').textContent=money(bi);$('#c-plan').textContent=money(ti);$('#c-ahorro').textContent=money(Math.max(0,ahorro));
- $('#c-txt').innerHTML='Si financiaras el 80 % con un banco al '+String(ref.t).replace('.',',')+' % a '+ref.y+' años pagarías <b>'+money(bi)+'</b> en intereses. Con tu plan pagas <b>'+money(ti)+'</b>. '+(ahorro>1?'Te ahorras <b>'+money(ahorro)+'</b>, '+pct(ahorro/P*100)+' del precio de tu departamento.':'');
- // Tabla anual
+ $('#h-warn').innerHTML=r.warn.map(function(w){return '<li>'+w+'</li>'}).join('');$('#h-warn').hidden=!r.warn.length;
+ $('#h-cuota').textContent=r.rows.length?money2(r.c1):'—';
+ $('#h-cuota-l').textContent=r.sis==='frances'?'Cuota mensual fija':'Primera cuota (luego disminuye)';
+ $('#h-int').textContent=money(r.ti);$('#h-tot').textContent=money(r.saldo+r.ti);
+ $('#h-ing').textContent=r.rows.length?money(r.ing):'—';
+ var ref=bankOf(CFG.bancoRef);
+ renderSav(r);$('#c-base').textContent=money(r.bi);$('#c-plan').textContent=money(r.ti);$('#c-ahorro').textContent=money(r.ahorro);
+ $('#c-txt').innerHTML='Si financiaras el 80 % con un banco al '+String(ref.t).replace('.',',')+' % a '+ref.y+' años pagarías <b>'+money(r.bi)+'</b> en intereses. Con tu plan pagas <b>'+money(r.ti)+'</b>. '+(r.ahorro>1?'Te ahorras <b>'+money(r.ahorro)+'</b>, '+pct(r.ahorro/P*100)+' del precio de tu departamento.':'');
  var tb=$('#h-tabla tbody'), html='';
- if(st.full){rows.forEach(function(r){html+='<tr><td>'+r.k+'</td><td>'+money2(r.c)+'</td><td>'+money2(r.i)+'</td><td>'+money2(r.a)+'</td><td>'+money2(r.s)+'</td></tr>'})}
- else{for(var yy=0;yy<anios;yy++){var sl=rows.slice(yy*12,yy*12+12);if(!sl.length)break;html+='<tr><td>Año '+(yy+1)+'</td><td>'+money2(sum(sl,'c'))+'</td><td>'+money2(sum(sl,'i'))+'</td><td>'+money2(sum(sl,'a'))+'</td><td>'+money2(sl[sl.length-1].s)+'</td></tr>'}}
+ if(st.full){r.rows.forEach(function(x){html+='<tr><td>'+x.k+'</td><td>'+money2(x.c)+'</td><td>'+money2(x.i)+'</td><td>'+money2(x.a)+'</td><td>'+money2(x.s)+'</td></tr>'})}
+ else{for(var yy=0;yy<r.anios;yy++){var sl=r.rows.slice(yy*12,yy*12+12);if(!sl.length)break;html+='<tr><td>Año '+(yy+1)+'</td><td>'+money2(sum(sl,'c'))+'</td><td>'+money2(sum(sl,'i'))+'</td><td>'+money2(sum(sl,'a'))+'</td><td>'+money2(sl[sl.length-1].s)+'</td></tr>'}}
  tb.innerHTML=html||'<tr><td colspan="5">Sin saldo a financiar.</td></tr>';
  $('#h-tabla thead th').textContent=st.full?'Mes':'Año';$('#h-tabla thead th:nth-child(2)').textContent=st.full?'Cuota':'Cuotas del año';
- last={P:P,e:e,E:E,S:S,n:n,cu:cu,saldo:saldo,pctEnt:pctEnt,b:b,tasa:tasa,anios:anios,rows:rows,c1:c1,ti:ti,u:el.u.value};
- window.SIM_WA=CFG.wa; window.simLast=function(){var ah=Math.max(0,bi-ti);return {raw:last,u:last.u,e:e,precio:money(P),ent:money(E),n:n,cuota:n?money2(cu):'',pagado:money(E+paid),pct:pct(pctEnt),saldo:saldo>0?money(saldo):'',hip:rows.length?money2(c1):'',int:money(ti),ing:rows.length?money(c1/CFG.relacionCuotaIngreso):'',base:money(bi),ahorro:money(ah),m2:money2,txt:$('#sim-wa').dataset.txt||''}};
- // WhatsApp y formulario
- var txt='Hola Skyline, simulé mi compra en Monteza Residences: '+(last.u?'unidad '+last.u+', ':'')+'precio '+money(P)+', entrada '+e+' % ('+money(E)+')'+(n?', '+n+' cuotas directas de '+money2(cu):'')+(saldo>0?', saldo a la entrega '+money(saldo)+' con '+b.n+' al '+String(tasa).replace('.',',')+' % a '+anios+' años (cuota aprox. '+money2(c1)+')':', departamento pagado al 100 % a la entrega')+'. Quiero recibir mi plan de pagos.';
+ var txt=summary(r)+' Quiero recibir mi plan de pagos.';
  $('#sim-wa').href=CFG.wa+'?text='+encodeURIComponent(txt);$('#sim-wa').dataset.txt=txt;
- var f=document.getElementById('form-mz');if(f){var h=f.querySelector('[name=simulacion]');if(h)h.value=txt;if(last.u){var fu=f.querySelector('[name=unidad]');if(fu&&!fu.value)fu.value=last.u}}
+ var f=document.getElementById('form-mz');if(f){var h=f.querySelector('[name=simulacion]');if(h)h.value=txt;if(r.u){var fu=f.querySelector('[name=unidad]');if(fu&&!fu.value)fu.value=r.u}}
+ updShare();
 }
-// Eventos
-el.u.addEventListener('change',function(){var u=U.find(function(x){return x.id===el.u.value});if(u&&u.pvp)el.p.value=u.pvp;calc()});
+function summary(r){return 'Hola Skyline, simulé mi compra en Monteza Residences: '+(r.u?'unidad '+r.u+', ':'')+'precio '+money(r.P)+', entrada '+r.e+' % ('+money(r.E)+')'+(r.n?', '+r.n+' cuotas directas de '+money2(r.cu):'')+(r.saldo>0?', saldo a la entrega '+money(r.saldo)+' con '+r.b.n+' al '+String(r.tasa).replace('.',',')+' % a '+r.anios+' años (cuota aprox. '+money2(r.c1)+')':', departamento pagado al 100 % a la entrega')+'.'}
+/* Escenarios */
+var SC=[];
+function scLabel(i){return 'Escenario '+'ABC'[i]}
+function renderSC(){var box=$('#sc-list');if(!SC.length){box.innerHTML='';$('#sc-save').disabled=false;return}
+ var rs=SC.map(function(x){return simulate(x.s)}), best=rs.reduce(function(a,x,i){return x.total<rs[a].total?i:a},0);
+ box.innerHTML=rs.map(function(r,i){var t=SC[i].t;return '<div class="scard'+(rs.length>1&&i===best?' best':'')+'"><div class="sc-top"><b>'+scLabel(i)+'</b><span>'+(t||'')+'</span>'+(rs.length>1&&i===best?'<em>Menor costo total</em>':'')+'<button type="button" class="sc-x" data-x="'+i+'" aria-label="Quitar">×</button></div>'+
+ '<p class="sc-u">'+(r.u?'Unidad '+r.u+(r.unit?' · '+r.unit.tipo:''):'Precio libre')+' · <b>'+money(r.P)+'</b></p><dl>'+
+ '<dt>Entrada</dt><dd>'+r.e+' % · '+money(r.E)+'</dd><dt>Cuotas sin intereses</dt><dd>'+(r.n?r.n+' × '+money(r.cu):'—')+'</dd><dt>Pagado a la entrega</dt><dd>'+pct(r.pctEnt)+'</dd>'+
+ '<dt>Hipoteca</dt><dd>'+(r.saldo>0?money(r.c1)+'/mes · '+r.b.n.replace(/ ·.*/,''):'Sin deuda')+'</dd><dt>Intereses</dt><dd>'+money(r.ti)+'</dd><dt>Costo total</dt><dd><b>'+money(r.total)+'</b></dd></dl>'+
+ '<button type="button" class="sc-load" data-l="'+i+'">Ver este escenario</button></div>'}).join('');
+ box.querySelectorAll('[data-x]').forEach(function(x){x.addEventListener('click',function(){SC.splice(+x.dataset.x,1);renderSC();updShare()})});
+ box.querySelectorAll('[data-l]').forEach(function(x){x.addEventListener('click',function(){applyState(SC[+x.dataset.l].s)})});
+ $('#sc-save').disabled=SC.length>=3;$('#sc-hint').textContent=SC.length>=3?'Ya tienes 3 escenarios. Quita uno para guardar otro.':'Cambia unidad, entrada o banco y guarda otro escenario para compararlo.'}
+$('#sc-save').addEventListener('click',function(){if(SC.length>=3)return;used1();var s=getState(),pre=root.dataset.pre||'';SC.push({s:s,t:pre?PRESET_N[pre]:''});root.dataset.pre='';renderSC();updShare();try{if(window.gtag)gtag('event','sim_scenario_save')}catch(e){}});
+root.querySelectorAll('[data-pre]').forEach(function(b){b.addEventListener('click',function(){used1();var s=preset(b.dataset.pre,getState());applyState(s);root.dataset.pre=b.dataset.pre;root.querySelectorAll('[data-pre]').forEach(function(x){x.classList.toggle('on',x===b)});try{if(window.gtag)gtag('event','sim_preset',{plan:b.dataset.pre})}catch(e){}})});
+/* Compartir */
+function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function dec(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return JSON.parse(decodeURIComponent(escape(atob(t))))}
+function shareURL(){return location.origin+location.pathname+'#sim='+enc({v:1,s:getState(),sc:SC})}
+function updShare(){if(!last)return;var a=$('#sh-wa');a.href='https://wa.me/?text='+encodeURIComponent('Mira esta simulación de compra en Monteza Residences (San Isidro del Inca, Quito): '+(last.u?'unidad '+last.u+', ':'')+money(last.P)+', entrada '+last.e+' %'+(last.n?', '+last.n+' cuotas de '+money(last.cu)+' sin intereses':'')+(last.saldo>0?' y hipoteca aprox. '+money(last.c1)+'/mes':' y llaves 100 % pagadas')+(SC.length?' · '+SC.length+' escenarios para comparar':'')+'. Ábrela y juega con los números: '+shareURL())}
+$('#sh-copy').addEventListener('click',function(){var u=shareURL(),m=$('#sh-st');function ok(){m.textContent='Enlace copiado. Pégalo en WhatsApp, correo o donde quieras.'}
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,function(){prompt('Copia este enlace:',u)});else prompt('Copia este enlace:',u);try{if(window.gtag)gtag('event','sim_share',{via:'link'})}catch(e){}});
+$('#sh-wa').addEventListener('click',function(){try{if(window.gtag)gtag('event','sim_share',{via:'whatsapp'})}catch(e){}});
+/* Eventos */
+el.u.addEventListener('change',function(){var u=unitOf(el.u.value);if(u&&u.pvp)el.p.value=u.pvp;calc()});
 el.p.addEventListener('input',function(){el.u.value='';calc()});
 [el.e,el.m,el.c,el.t,el.y].forEach(function(x){x.addEventListener('input',function(){used1();calc()})});
 el.bk.addEventListener('change',function(){setBank(el.bk.value)});
+root.querySelectorAll('[data-ent]').forEach(function(b){b.addEventListener('click',function(){used1();el.e.value=b.dataset.ent;calc()})});
 root.querySelectorAll('[data-modo]').forEach(function(b){b.addEventListener('click',function(){st.modo=b.dataset.modo;root.querySelectorAll('[data-modo]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});$('#w-plazo').hidden=st.modo!=='plazo';$('#w-cuota').hidden=st.modo!=='cuota';calc()})});
 root.querySelectorAll('[data-cuota]').forEach(function(b){b.addEventListener('click',function(){el.c.value=b.dataset.cuota;root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
 root.querySelectorAll('[data-sis]').forEach(function(b){b.addEventListener('click',function(){st.sis=b.dataset.sis;root.querySelectorAll('[data-sis]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
 $('#h-full').addEventListener('click',function(){st.full=!st.full;this.textContent=st.full?'Ver resumen anual':'Ver tabla mes a mes';calc()});
-$('#h-csv').addEventListener('click',function(){if(!last)return;var L=[['Periodo','Concepto','Cuota (USD)','Interés (USD)','Capital (USD)','Saldo (USD)']];
- var s=last.P;L.push(['Mes 0','Entrada '+last.e+' %',last.E.toFixed(2),'0.00',last.E.toFixed(2),(s-=last.E).toFixed(2)]);
- for(var k=1;k<=last.n;k++){var c=Math.min(last.cu,last.S-last.cu*(k-1));if(c<=0)break;s-=c;L.push(['Mes '+k,'Crédito directo Skyline',c.toFixed(2),'0.00',c.toFixed(2),Math.max(0,s).toFixed(2)])}
- last.rows.forEach(function(r){L.push(['Hipoteca mes '+r.k,last.b.n,r.c.toFixed(2),r.i.toFixed(2),r.a.toFixed(2),r.s.toFixed(2)])});
- var csv='﻿'+L.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(';')}).join('\n');
- var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='Monteza-plan-de-pagos'+(last.u?'-'+last.u:'')+'.csv';document.body.appendChild(a);a.click();a.remove()});
-function renderSav(P,S,bi,ti){var box=document.getElementById('sav');if(!box)return;
- var ah=Math.max(0,bi-ti);var tot=document.getElementById('sv-total');var from=+(tot.dataset.v||0);tot.dataset.v=ah;
+function renderSav(r){var box=document.getElementById('sav');if(!box)return;var P=r.P,S=r.S,bi=r.bi,ti=r.ti;
+ var ah=r.ahorro;var tot=document.getElementById('sv-total');var from=+(tot.dataset.v||0);tot.dataset.v=ah;
  var t0=null;function step(ts){if(!t0)t0=ts;var k=Math.min(1,(ts-t0)/700);tot.textContent=money(from+(ah-from)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step);
- var ref=B.find(function(x){return x.id===CFG.bancoRef}),cb=amort(P*0.8,ref.t,ref.y,'frances');var c=cb.length?cb[0].c:0;
+ var c=r.cb;
  document.getElementById('sv-eq').innerHTML=ah>1&&c?'Equivale a <b>'+Math.round(ah/c)+' cuotas</b> de hipoteca que ya no pagarás · '+pct(ah/P*100)+' del precio de tu departamento':'Sube tu cuota o tu entrada y mira cómo crece tu ahorro.';
- var mx=Math.max(bi,1);document.getElementById('sv-bank').style.width='100%';document.getElementById('sv-mine').style.width=Math.max(1.5,ti/mx*100)+'%';
+ var mx=Math.max(bi,ti,1);document.getElementById('sv-bank').style.width=Math.max(1.5,bi/mx*100)+'%';document.getElementById('sv-mine').style.width=Math.max(1.5,ti/mx*100)+'%';
  document.getElementById('sv-bank-v').textContent=money(bi);document.getElementById('sv-mine-v').textContent=money(ti);
- var b=bank(),tasa=+el.t.value,anios=+el.y.value,E=P-S,row='';
- [500,1000,1500,2000,2500,3000].forEach(function(q){var n=Math.min(MAXM,Math.ceil(S/q-1e-9)),sal=Math.max(0,S-q*n),r=amort(sal,tasa,anios,st.sis),i=sum(r,'i'),a=Math.max(0,bi-i);
+ var row='';
+ [500,1000,1500,2000,2500,3000].forEach(function(q){var n=Math.min(MAXM,Math.ceil(S/q-1e-9)),sal=Math.max(0,S-q*n),rr=amort(sal,r.tasa,r.anios,r.sis),i=sum(rr,'i'),a=Math.max(0,bi-i);
   var on=st.modo==='cuota'&&+el.c.value===q;row+='<button type="button" class="stp'+(on?' on':'')+'" data-q="'+q+'"><span>Cuota '+money(q)+'</span><b>'+money(a)+'</b><small>'+(sal>0?'saldo '+money(sal):'pagado al 100 %')+'</small><i style="height:'+Math.max(6,a/Math.max(bi,1)*100)+'%"></i></button>'});
  var sv=document.getElementById('sv-steps');sv.innerHTML=row;
  sv.querySelectorAll('.stp').forEach(function(x){x.addEventListener('click',function(){var q=+x.dataset.q;st.modo='cuota';root.querySelectorAll('[data-modo]').forEach(function(m){m.setAttribute('aria-pressed',m.dataset.modo==='cuota')});$('#w-plazo').hidden=true;$('#w-cuota').hidden=false;el.c.value=q;root.querySelectorAll('[data-cuota]').forEach(function(m){m.setAttribute('aria-pressed',+m.dataset.cuota===q)});calc()})})}
-window.simSetUnit=function(id){var u=U.find(function(x){return x.id===id});if(!u||!u.pvp)return;el.u.value=id;el.p.value=u.pvp;calc()};
-setBank(st.banco);
+window.simSetUnit=function(id){var u=unitOf(id);if(!u||!u.pvp)return;el.u.value=id;el.p.value=u.pvp;calc()};
+/* Paquete para PDF y Excel */
+window.SIM_WA=CFG.wa;
+window.simPack=function(){var cur=getState(),r=simulate(cur);
+ return {cur:r,txt:summary(r),scen:SC.map(function(x,i){var o=simulate(x.s);o.label=scLabel(i)+(x.t?' · '+x.t:'');return o}),
+  presets:['ligero','equilibrado','cero'].map(function(k){var o=simulate(preset(k,cur));o.label=PRESET_N[k];o.key=k;return o}),
+  units:U.filter(function(u){return u.pvp&&/dispon/i.test(u.estado||'Disponible')}),bancos:B,cfg:CFG,share:shareURL(),amort:amort,simulate:simulate}};
+window.simLast=function(){var p=window.simPack(),r=p.cur;return {u:r.u,precio:money(r.P),ent:money(r.E),n:r.n,cuota:r.n?money2(r.cu):'',saldo:r.saldo>0?money(r.saldo):'',txt:p.txt}};
+/* Estado inicial: enlace compartido o valores por defecto */
+var h=location.hash.match(/sim=([\w-]+)/),loaded=false;
+if(h){try{var o=dec(h[1]);if(o&&o.s){SC=(o.sc||[]).slice(0,3).filter(function(x){return x&&x.s});applyState(o.s,true);loaded=true;renderSC();setTimeout(function(){root.scrollIntoView({behavior:'smooth'})},400);try{if(window.gtag)gtag('event','sim_shared_open')}catch(e){}}}catch(e){}}
+if(loaded)calc();else{var b0=bankOf(st.banco);applyState(preset('equilibrado',{u:'',p:+el.p.value||0,b:st.banco,t:b0.t,y:Math.min(b0.y,b0.ymax),sis:'frances'}),true);root.querySelectorAll('[data-pre]').forEach(function(x){x.classList.toggle('on',x.dataset.pre==='equilibrado')});root.dataset.pre='equilibrado';calc()}
 })();
-/* Captura de datos y plan de pagos en PDF */
+/* Captura de datos, plan ilustrado (PDF + brochure) y Excel */
 (function(){var dlg=document.getElementById('lead'),f=document.getElementById('lead-f');if(!dlg||!f)return;
 function ced(v){if(!/^\d{10}$/.test(v))return false;var pr=+v.slice(0,2);if(!((pr>=1&&pr<=24)||pr===30))return false;if(+v[2]>5)return false;var s=0;for(var i=0;i<9;i++){var d=+v[i]*(i%2?1:2);if(d>9)d-=9;s+=d}return (10-s%10)%10===+v[9]}
 function err(id,m){var e=f.querySelector('[data-for="'+id+'"]');if(e)e.textContent=m||''}
@@ -120,21 +172,8 @@ function open(canal){var L=window.simLast&&window.simLast();f.querySelector('#lf
 document.querySelectorAll('[data-lead]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();open(b.dataset.lead)})});
 dlg.querySelector('.lead-x').addEventListener('click',function(){dlg.close()});
 dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
-function loadPDF(cb){if(window.jspdf)return cb();var s=document.createElement('script');s.src='/assets/js/jspdf.umd.min.js';s.onload=function(){cb()};s.onerror=function(){cb(true)};document.head.appendChild(s)}
-function makePDF(d,L){var J=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),y=0,W=210;
- function hdr(){J.setFillColor(29,29,27);J.rect(0,0,W,30,'F');J.setFillColor(255,201,97);J.rect(0,30,W,1.5,'F');J.setTextColor(255,201,97);J.setFontSize(9);J.text('SKYLINE CONSTRUCTIONS',14,12);J.setTextColor(255,255,255);J.setFontSize(18);J.text('Monteza Residences · Plan de pagos',14,22);y=42;J.setTextColor(29,29,27)}
- function row(a,b,bold){if(y>275){J.addPage();hdr()}J.setFontSize(10);J.setFont('helvetica',bold?'bold':'normal');J.text(String(a),14,y);J.text(String(b),196,y,{align:'right'});J.setDrawColor(214,212,206);J.line(14,y+2,196,y+2);y+=7}
- function title(t){if(y>260){J.addPage();hdr()}y+=3;J.setFont('helvetica','bold');J.setFontSize(12);J.setTextColor(125,95,37);J.text(t,14,y);J.setTextColor(29,29,27);y+=8}
- hdr();J.setFontSize(10);J.setFont('helvetica','normal');J.text('Cliente: '+d.nombre,14,y);J.text('Cédula: '+d.cedula,196,y,{align:'right'});y+=6;J.text('Fecha: '+new Date().toLocaleDateString('es-EC'),14,y);J.text('WhatsApp: '+d.whatsapp,196,y,{align:'right'});y+=8;
- title('Tu compra');row('Unidad',L.u||'Por definir');row('Precio de preventa',L.precio,true);row('Entrada ('+L.e+' %)',L.ent);
- title('Crédito directo Skyline · 0 % de interés');row('Número de cuotas',L.n||0);row('Cuota mensual',L.cuota||'—',true);row('Pagado a la entrega',L.pagado+' ('+L.pct+')');row('Saldo a la entrega',L.saldo||'USD 0',true);
- if(L.raw.saldo>0){title('Saldo con crédito hipotecario');row('Entidad',L.raw.b.n);row('Tasa anual referencial',String(L.raw.tasa).replace('.',',')+' %');row('Plazo',L.raw.anios+' años');row('Cuota mensual aproximada',L.hip,true);row('Intereses totales',L.int);row('Ingreso familiar sugerido',L.ing)}
- title('Tu ahorro por comprar en planos');row('Intereses si financias el 80 % con banco',L.base);row('Intereses con tu plan',L.int||'USD 0');row('Ahorro en intereses',L.ahorro,true);
- if(L.raw.n){title('Cronograma del crédito directo');var s=L.raw.S;for(var k=1;k<=L.raw.n;k++){var c=Math.min(L.raw.cu,s);s-=c;row('Cuota '+k,L.m2(c)+'   ·   saldo '+L.m2(Math.max(0,s)))}}
- if(L.raw.rows&&L.raw.rows.length){title('Resumen anual del crédito hipotecario');for(var a=0;a<L.raw.anios;a++){var sl=L.raw.rows.slice(a*12,a*12+12);if(!sl.length)break;var ci=sl.reduce(function(x,r){return x+r.c},0),ii=sl.reduce(function(x,r){return x+r.i},0);row('Año '+(a+1),'cuotas '+L.m2(ci)+' · interés '+L.m2(ii)+' · saldo '+L.m2(sl[sl.length-1].s))}}
- y+=4;if(y>255){J.addPage();hdr()}J.setFontSize(8);J.setTextColor(94,92,87);J.text(J.splitTextToSize('Simulación referencial; no constituye oferta ni aprobación de crédito. El crédito directo está sujeto a aprobación de Skyline Constructions y a la firma de la promesa de compraventa; cuotas hasta la entrega, máximo 36 meses. Condiciones hipotecarias referenciales a octubre de 2026, definidas por cada entidad. Precios sujetos a cambio y disponibilidad. Canales oficiales: skylineconstructions.build · +593 96 300 2600 · WhatsApp +593 96 300 2600',182),14,y);
- var np=J.getNumberOfPages();for(var pi=1;pi<=np;pi++){J.setPage(pi);J.setFontSize(6.5);J.setTextColor(140,138,130);J.text('Documento personal generado para '+d.nombre+' · C.I. '+d.cedula+' · '+new Date().toLocaleDateString('es-EC')+' · Pagos solo a cuentas a nombre de Skyline Constructions con contrato firmado · skylineconstructions.build',105,292,{align:'center',maxWidth:190})}
- return J}
+function load(src,test){return new Promise(function(res,rej){if(test())return res();var s=document.createElement('script');s.src=src;s.onload=function(){res()};s.onerror=function(){rej(new Error(src))};document.head.appendChild(s)})}
+function dl(a,blob,name){a.href=URL.createObjectURL(blob);a.download=name;a.hidden=false}
 f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f),d={};fd.forEach(function(v,k){d[k]=v});var ok=true;err('lf-ced');err('lf-cc');err('lf-wa');
  if(!ced(d.cedula||'')){err('lf-ced','Revisa tu número de cédula');ok=false}
  if(/Casado|Unión/.test(d.estado_civil)&&!ced(d.conyuge_cedula||'')){err('lf-cc','Revisa la cédula del cónyuge');ok=false}
@@ -142,13 +181,20 @@ f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f
  if(!f.checkValidity()||!ok){f.reportValidity();return}
  var er=window.SKSEC?window.SKSEC.check(f):'';if(er){if(er!=='bot')f.querySelector('.lead-st').textContent=er;return}
  var st=f.querySelector('.lead-st'),bt=f.querySelector('button[type=submit]');bt.disabled=true;st.textContent='Generando tu plan…';
- var L=window.simLast&&window.simLast();
- fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){if(!r.ok)throw 0}).then(function(){var bl=document.getElementById('lo-bro');if(bl&&window.SKSEC){bl.href=window.SKSEC.link(bl.dataset.k);bl.hidden=false}
+ var pack=window.simPack&&window.simPack();
+ fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){if(!r.ok)throw 0}).then(function(){
+  var bl=document.getElementById('lo-bro'),bro=(bl&&window.SKSEC)?window.SKSEC.link(bl.dataset.k):'';if(bl&&bro){bl.href=bro;bl.hidden=false}
   try{if(window.gtag)gtag('event','generate_lead',{form:'plan_de_pagos',canal:d.canal})}catch(x){}
-  loadPDF(function(fail){bt.disabled=false;bt.hidden=true;st.textContent='';var ok2=document.getElementById('lead-ok');ok2.hidden=false;
-   var name='Plan-de-pagos-Monteza'+(L&&L.u?'-'+L.u:'')+'.pdf',lp=document.getElementById('lo-pdf');
-   var done=false;if(!fail&&L){try{var J=makePDF(d,L),url=URL.createObjectURL(J.output('blob'));lp.href=url;lp.download=name;lp.hidden=false;lp.click();done=true}catch(x){console.error('pdf',x)}}if(!done){lp.hidden=true}
-   var msg='Hola Skyline, soy '+d.nombre+'. Generé mi plan de pagos de Monteza Residences: '+(L?L.txt:'')+' Prefiero recibir la información por '+d.canal+'.';
-   document.getElementById('lo-wa').href=window.SIM_WA+'?text='+encodeURIComponent(msg);
-   if(d.canal==='whatsapp')setTimeout(function(){window.open(document.getElementById('lo-wa').href,'_blank')},900)})}).catch(function(){bt.disabled=false;st.textContent='No pudimos registrar tus datos. Revisa tu conexión o escríbenos por WhatsApp al +593 96 300 2600.'})});
+  bt.disabled=false;bt.hidden=true;st.textContent='';document.getElementById('lead-ok').hidden=false;
+  var los=document.getElementById('lo-st'),lp=document.getElementById('lo-pdf'),lx=document.getElementById('lo-xls'),base=(pack&&pack.cur.u?'-'+pack.cur.u:'');
+  var msg='Hola Skyline, soy '+d.nombre+'. Generé mi plan de pagos de Monteza Residences: '+(pack?pack.txt:'')+' Prefiero recibir la información por '+d.canal+'.';
+  document.getElementById('lo-wa').href=window.SIM_WA+'?text='+encodeURIComponent(msg);
+  if(!pack){los.textContent='Descarga el brochure y escríbenos para recibir tu plan.';return}
+  pack.bro=bro;
+  load('/assets/js/mzplan.js?v=1',function(){return !!window.MZPLAN}).then(function(){
+   return window.MZPLAN.pdf(d,pack).then(function(blob){dl(lp,blob,'Monteza-Residences-Plan-y-Brochure'+base+'.pdf');lp.click();los.textContent='Tu PDF incluye tu plan ilustrado y el brochure del proyecto. El Excel te permite seguir jugando con los números.'},function(x){console.error('pdf',x);los.textContent='No pudimos armar el PDF; descarga el brochure y el Excel.'})
+    .then(function(){return window.MZPLAN.xlsx(d,pack).then(function(blob){dl(lx,blob,'Monteza-Residences-Plan-de-Pagos'+base+'.xlsx')},function(x){console.error('xlsx',x)})})
+  }).catch(function(x){console.error(x);los.textContent='Descarga el brochure y escríbenos por WhatsApp para recibir tu plan.'})
+  .then(function(){if(d.canal==='whatsapp')setTimeout(function(){window.open(document.getElementById('lo-wa').href,'_blank')},1200)})
+ }).catch(function(){bt.disabled=false;st.textContent='No pudimos registrar tus datos. Revisa tu conexión o escríbenos por WhatsApp al +593 96 300 2600.'})});
 })();
