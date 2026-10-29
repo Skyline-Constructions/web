@@ -182,7 +182,7 @@ f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f
  var er=window.SKSEC?window.SKSEC.check(f):'';if(er){if(er!=='bot')f.querySelector('.lead-st').textContent=er;return}
  var st=f.querySelector('.lead-st'),bt=f.querySelector('button[type=submit]');bt.disabled=true;st.textContent='Generando tu plan…';
  var pack=window.simPack&&window.simPack();
- fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){if(!r.ok)throw 0}).then(function(){
+ fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){return r.json().then(function(j){if(!r.ok||String(j.success)==='false')throw 0},function(){if(!r.ok)throw 0})}).then(function(){
   var bl=document.getElementById('lo-bro'),bro=(bl&&window.SKSEC)?window.SKSEC.link(bl.dataset.k):'';if(bl&&bro){bl.href=bro;bl.hidden=false}
   try{if(window.gtag)gtag('event','generate_lead',{form:'plan_de_pagos',canal:d.canal})}catch(x){}
   bt.disabled=false;bt.hidden=true;st.textContent='';document.getElementById('lead-ok').hidden=false;
