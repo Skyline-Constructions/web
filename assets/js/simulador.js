@@ -182,7 +182,7 @@ f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f
  var er=window.SKSEC?window.SKSEC.check(f):'';if(er){if(er!=='bot')f.querySelector('.lead-st').textContent=er;return}
  var st=f.querySelector('.lead-st'),bt=f.querySelector('button[type=submit]');bt.disabled=true;st.textContent='Generando tu plan…';
  var pack=window.simPack&&window.simPack();
- fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){return r.json().then(function(j){if(!r.ok||String(j.success)==='false')throw 0},function(){if(!r.ok)throw 0})}).then(function(){
+ fd=new FormData(f);fetch(f.action,{method:'POST',body:fd,headers:{Accept:'application/json'}}).then(function(r){return r.json().then(function(j){return r.ok&&String(j.success)!=='false'},function(){return r.ok})},function(){return false}).then(function(sent){window.SK_SENT=sent;if(!sent){try{if(window.gtag)gtag('event','lead_fallback_whatsapp')}catch(x){}}
   var bl=document.getElementById('lo-bro'),bro=(bl&&window.SKSEC)?window.SKSEC.link(bl.dataset.k):'';if(bl&&bro){bl.href=bro;bl.hidden=false}
   try{if(window.gtag)gtag('event','generate_lead',{form:'plan_de_pagos',canal:d.canal})}catch(x){}
   bt.disabled=false;bt.hidden=true;st.textContent='';document.getElementById('lead-ok').hidden=false;
@@ -195,6 +195,6 @@ f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f
    return window.MZPLAN.pdf(d,pack).then(function(blob){dl(lp,blob,'Monteza-Residences-Plan-y-Brochure'+base+'.pdf');lp.click();los.textContent='Tu PDF incluye tu plan ilustrado y el brochure del proyecto. El Excel te permite seguir jugando con los números.'},function(x){console.error('pdf',x);los.textContent='No pudimos armar el PDF; descarga el brochure y el Excel.'})
     .then(function(){return window.MZPLAN.xlsx(d,pack).then(function(blob){dl(lx,blob,'Monteza-Residences-Plan-de-Pagos'+base+'.xlsx')},function(x){console.error('xlsx',x)})})
   }).catch(function(x){console.error(x);los.textContent='Descarga el brochure y escríbenos por WhatsApp para recibir tu plan.'})
-  .then(function(){if(d.canal==='whatsapp')setTimeout(function(){window.open(document.getElementById('lo-wa').href,'_blank')},1200)})
+  .then(function(){if(d.canal==='whatsapp'||!window.SK_SENT)setTimeout(function(){window.open(document.getElementById('lo-wa').href,'_blank')},1200)})
  }).catch(function(){bt.disabled=false;st.textContent='No pudimos registrar tus datos. Revisa tu conexión o escríbenos por WhatsApp al +593 96 300 2600.'})});
 })();
