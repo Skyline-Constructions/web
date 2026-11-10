@@ -5,14 +5,16 @@ var CFG=JSON.parse(document.getElementById('sim-cfg').textContent);
 var U=CFG.units, B=CFG.bancos, MAXM=CFG.mesesEntrega, ENTMIN=CFG.entradaMin||5, SUG=CFG.entradaSug||20;
 var PRIV=['pichincha','pacifico','produbanco','otra'];
 var $=function(s){return root.querySelector(s)};
-var money=function(v){return 'USD '+Math.round(v).toLocaleString('es-EC')};
-var money2=function(v){return 'USD '+v.toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2})};
-var pct=function(v){return (Math.round(v*10)/10).toLocaleString('es-EC')+' %'};
+var gN=window.SKN||function(n,d){d=d||0;var s=Math.abs(+n||0).toFixed(d).split('.');s[0]=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return (n<0?'-':'')+s.join(',')};
+var money=function(v){return 'USD '+gN(Math.round(v))};
+var money2=function(v){return 'USD '+gN(v,2)};
+var pct=function(v){var r=Math.round(v*10)/10;return gN(r,r%1?1:0)+' %'};
+var num=function(x){return +(String(x==null?'':x).replace(/\./g,'').replace(',','.').replace(/[^\d.]/g,''))||0};var put=function(i,v){i.value=gN(Math.round(+v||0))};
 var st={modo:'plazo',sis:'frances',banco:'pichincha',full:false};
 var el={u:$('#s-unidad'),p:$('#s-precio'),e:$('#s-ent'),ev:$('#s-ent-v'),m:$('#s-meses'),mv:$('#s-meses-v'),c:$('#s-cuota'),
  bk:$('#h-banco'),t:$('#h-tasa'),y:$('#h-anios'),yv:$('#h-anios-v')};
 var g={};U.forEach(function(u){if(!u.pvp)return;(g[u.tipo]=g[u.tipo]||[]).push(u)});
-Object.keys(g).forEach(function(t){var og=document.createElement('optgroup');og.label=t;g[t].forEach(function(u){var o=document.createElement('option');o.value=u.id;o.textContent=u.id+' · '+u.nivel+' · '+u.area.toFixed(2)+' m² · '+money(u.pvp);og.appendChild(o)});el.u.appendChild(og)});
+Object.keys(g).forEach(function(t){var og=document.createElement('optgroup');og.label=t;g[t].forEach(function(u){var o=document.createElement('option');o.value=u.id;o.textContent=u.id+' · '+u.nivel+' · '+gN(u.area,2)+' m² · '+money(u.pvp);og.appendChild(o)});el.u.appendChild(og)});
 B.forEach(function(b){var o=document.createElement('option');o.value=b.id;o.textContent=b.n;el.bk.appendChild(o)});
 function bankOf(id){return B.find(function(b){return b.id===id})||B[0]}
 function unitOf(id){return U.find(function(x){return x.id===id})}
@@ -42,7 +44,7 @@ function simulate(s){
  if(tasa>CFG.tasaMaxLegal)warn.push('La tasa supera la máxima legal vigente ('+String(CFG.tasaMaxLegal).replace('.',',')+' %).');
  return {s:s,u:s.u||'',unit:unitOf(s.u),P:P,e:e,E:E,S:S,n:n,cu:cu,ult:ult,paid:paid,saldo:saldo,pagado:pagado,pctEnt:pctEnt,b:b,tasa:tasa,anios:anios,sis:s.sis||'frances',rows:rows,c1:c1,ti:ti,bi:bi,cb:cb,ahorro:Math.max(0,bi-ti),total:P+ti,ing:c1/CFG.relacionCuotaIngreso,warn:warn,modo:s.modo};
 }
-function getState(){return {u:el.u.value,p:+el.p.value||0,e:+el.e.value,modo:st.modo,n:+el.m.value,c:+el.c.value||0,b:st.banco,t:+el.t.value,y:+el.y.value,sis:st.sis}}
+function getState(){return {u:el.u.value,p:num(el.p.value),e:+el.e.value,modo:st.modo,n:+el.m.value,c:num(el.c.value)||0,b:st.banco,t:+el.t.value,y:+el.y.value,sis:st.sis}}
 function round50(v){return Math.max(100,Math.ceil(v/50)*50)}
 function preset(k,base){var P=base.p,s={u:base.u,p:P,b:base.b,t:base.t,y:base.y,sis:base.sis};
  if(k==='ligero'){s.e=5;s.modo='cuota';s.c=round50(P*0.15/MAXM);s.n=MAXM}
@@ -53,9 +55,9 @@ function preset(k,base){var P=base.p,s={u:base.u,p:P,b:base.b,t:base.t,y:base.y,
 var PRESET_N={ligero:'Empieza ligero',equilibrado:'Equilibrado (sugerido)',cero:'Cero deuda'};
 function applyState(s,silent){
  if(s.u&&unitOf(s.u)){el.u.value=s.u}else el.u.value='';
- el.p.value=Math.round(s.p||0);el.e.value=s.e||SUG;
+ put(el.p,s.p||0);el.e.value=s.e||SUG;
  st.modo=s.modo||'plazo';root.querySelectorAll('[data-modo]').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.modo===st.modo)});$('#w-plazo').hidden=st.modo!=='plazo';$('#w-cuota').hidden=st.modo!=='cuota';
- if(s.n)el.m.value=s.n;if(s.c)el.c.value=s.c;root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',+x.dataset.cuota===+el.c.value)});
+ if(s.n)el.m.value=s.n;if(s.c)put(el.c,s.c);root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',+x.dataset.cuota===num(el.c.value))});
  st.banco=s.b||'pichincha';el.bk.value=st.banco;var bk=bankOf(st.banco);el.y.max=bk.ymax;el.t.value=(s.t!=null&&s.t!=='')?s.t:bk.t;el.y.value=s.y||Math.min(bk.y,bk.ymax);
  st.sis=s.sis||'frances';root.querySelectorAll('[data-sis]').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.sis===st.sis)});
  if(!silent)calc()}
@@ -125,13 +127,13 @@ $('#sh-copy').addEventListener('click',function(){var u=shareURL(),m=$('#sh-st')
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,function(){prompt('Copia este enlace:',u)});else prompt('Copia este enlace:',u);try{if(window.gtag)gtag('event','sim_share',{via:'link'})}catch(e){}});
 $('#sh-wa').addEventListener('click',function(){try{if(window.gtag)gtag('event','sim_share',{via:'whatsapp'})}catch(e){}});
 /* Eventos */
-el.u.addEventListener('change',function(){var u=unitOf(el.u.value);if(u&&u.pvp)el.p.value=u.pvp;calc()});
+el.u.addEventListener('change',function(){var u=unitOf(el.u.value);if(u&&u.pvp)put(el.p,u.pvp);calc()});
 el.p.addEventListener('input',function(){el.u.value='';calc()});
 [el.e,el.m,el.c,el.t,el.y].forEach(function(x){x.addEventListener('input',function(){used1();calc()})});
 el.bk.addEventListener('change',function(){setBank(el.bk.value)});
 root.querySelectorAll('[data-ent]').forEach(function(b){b.addEventListener('click',function(){used1();el.e.value=b.dataset.ent;calc()})});
 root.querySelectorAll('[data-modo]').forEach(function(b){b.addEventListener('click',function(){st.modo=b.dataset.modo;root.querySelectorAll('[data-modo]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});$('#w-plazo').hidden=st.modo!=='plazo';$('#w-cuota').hidden=st.modo!=='cuota';calc()})});
-root.querySelectorAll('[data-cuota]').forEach(function(b){b.addEventListener('click',function(){el.c.value=b.dataset.cuota;root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
+root.querySelectorAll('[data-cuota]').forEach(function(b){b.addEventListener('click',function(){put(el.c,b.dataset.cuota);root.querySelectorAll('[data-cuota]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
 root.querySelectorAll('[data-sis]').forEach(function(b){b.addEventListener('click',function(){st.sis=b.dataset.sis;root.querySelectorAll('[data-sis]').forEach(function(x){x.setAttribute('aria-pressed',x===b)});calc()})});
 $('#h-full').addEventListener('click',function(){st.full=!st.full;this.textContent=st.full?'Ver resumen anual':'Ver tabla mes a mes';calc()});
 function renderSav(r){var box=document.getElementById('sav');if(!box)return;var P=r.P,S=r.S,bi=r.bi,ti=r.ti;
@@ -143,10 +145,11 @@ function renderSav(r){var box=document.getElementById('sav');if(!box)return;var 
  document.getElementById('sv-bank-v').textContent=money(bi);document.getElementById('sv-mine-v').textContent=money(ti);
  var row='';
  [500,1000,1500,2000,2500,3000].forEach(function(q){var n=Math.min(MAXM,Math.ceil(S/q-1e-9)),sal=Math.max(0,S-q*n),rr=amort(sal,r.tasa,r.anios,r.sis),i=sum(rr,'i'),a=Math.max(0,bi-i);
-  var on=st.modo==='cuota'&&+el.c.value===q;row+='<button type="button" class="stp'+(on?' on':'')+'" data-q="'+q+'"><span>Cuota '+money(q)+'</span><b>'+money(a)+'</b><small>'+(sal>0?'saldo '+money(sal):'pagado al 100 %')+'</small><i style="height:'+Math.max(6,a/Math.max(bi,1)*100)+'%"></i></button>'});
+  var on=st.modo==='cuota'&&num(el.c.value)===q;row+='<button type="button" class="stp'+(on?' on':'')+'" data-q="'+q+'"><span>Cuota '+money(q)+'</span><b>'+money(a)+'</b><small>'+(sal>0?'saldo '+money(sal):'pagado al 100 %')+'</small><i style="height:'+Math.max(6,a/Math.max(bi,1)*100)+'%"></i></button>'});
  var sv=document.getElementById('sv-steps');sv.innerHTML=row;
- sv.querySelectorAll('.stp').forEach(function(x){x.addEventListener('click',function(){var q=+x.dataset.q;st.modo='cuota';root.querySelectorAll('[data-modo]').forEach(function(m){m.setAttribute('aria-pressed',m.dataset.modo==='cuota')});$('#w-plazo').hidden=true;$('#w-cuota').hidden=false;el.c.value=q;root.querySelectorAll('[data-cuota]').forEach(function(m){m.setAttribute('aria-pressed',+m.dataset.cuota===q)});calc()})})}
-window.simSetUnit=function(id){var u=unitOf(id);if(!u||!u.pvp)return;el.u.value=id;el.p.value=u.pvp;calc()};
+ sv.querySelectorAll('.stp').forEach(function(x){x.addEventListener('click',function(){var q=+x.dataset.q;st.modo='cuota';root.querySelectorAll('[data-modo]').forEach(function(m){m.setAttribute('aria-pressed',m.dataset.modo==='cuota')});$('#w-plazo').hidden=true;$('#w-cuota').hidden=false;put(el.c,q);root.querySelectorAll('[data-cuota]').forEach(function(m){m.setAttribute('aria-pressed',+m.dataset.cuota===q)});calc()})})}
+[el.p,el.c].forEach(function(i){if(!i)return;i.addEventListener('blur',function(){if(i.value!=='')put(i,num(i.value))});i.addEventListener('input',function(){var v=num(i.value);if(i.value!==''&&String(v).length>3){var f=gN(v);if(f!==i.value){i.value=f;try{i.setSelectionRange(f.length,f.length)}catch(e){}}}})});
+window.simSetUnit=function(id){var u=unitOf(id);if(!u||!u.pvp)return;el.u.value=id;put(el.p,u.pvp);calc()};
 /* Paquete para PDF y Excel */
 window.SIM_WA=CFG.wa;
 window.simPack=function(){var cur=getState(),r=simulate(cur);
@@ -157,7 +160,7 @@ window.simLast=function(){var p=window.simPack(),r=p.cur;return {u:r.u,precio:mo
 /* Estado inicial: enlace compartido o valores por defecto */
 var h=location.hash.match(/sim=([\w-]+)/),loaded=false;
 if(h){try{var o=dec(h[1]);if(o&&o.s){SC=(o.sc||[]).slice(0,3).filter(function(x){return x&&x.s});applyState(o.s,true);loaded=true;renderSC();setTimeout(function(){root.scrollIntoView({behavior:'smooth'})},400);try{if(window.gtag)gtag('event','sim_shared_open')}catch(e){}}}catch(e){}}
-if(loaded)calc();else{var b0=bankOf(st.banco);applyState(preset('equilibrado',{u:'',p:+el.p.value||0,b:st.banco,t:b0.t,y:Math.min(b0.y,b0.ymax),sis:'frances'}),true);root.querySelectorAll('[data-pre]').forEach(function(x){x.classList.toggle('on',x.dataset.pre==='equilibrado')});root.dataset.pre='equilibrado';calc()}
+if(loaded)calc();else{var b0=bankOf(st.banco);applyState(preset('equilibrado',{u:'',p:num(el.p.value),b:st.banco,t:b0.t,y:Math.min(b0.y,b0.ymax),sis:'frances'}),true);root.querySelectorAll('[data-pre]').forEach(function(x){x.classList.toggle('on',x.dataset.pre==='equilibrado')});root.dataset.pre='equilibrado';calc()}
 })();
 /* Captura de datos, plan ilustrado (PDF + brochure) y Excel */
 (function(){var dlg=document.getElementById('lead'),f=document.getElementById('lead-f');if(!dlg||!f)return;
@@ -191,7 +194,7 @@ f.addEventListener('submit',function(e){e.preventDefault();var fd=new FormData(f
   document.getElementById('lo-wa').href=window.SIM_WA+'?text='+encodeURIComponent(msg);
   if(!pack){los.textContent='Descarga el brochure y escríbenos para recibir tu plan.';return}
   pack.bro=bro;
-  load('/assets/js/mzplan.js?v=1',function(){return !!window.MZPLAN}).then(function(){
+  load('/assets/js/mzplan.js?v=2',function(){return !!window.MZPLAN}).then(function(){
    return window.MZPLAN.pdf(d,pack).then(function(blob){dl(lp,blob,'Monteza-Residences-Plan-y-Brochure'+base+'.pdf');lp.click();los.textContent='Tu PDF incluye tu plan ilustrado y el brochure del proyecto. El Excel te permite seguir jugando con los números.'},function(x){console.error('pdf',x);los.textContent='No pudimos armar el PDF; descarga el brochure y el Excel.'})
     .then(function(){return window.MZPLAN.xlsx(d,pack).then(function(blob){dl(lx,blob,'Monteza-Residences-Plan-de-Pagos'+base+'.xlsx')},function(x){console.error('xlsx',x)})})
   }).catch(function(x){console.error(x);los.textContent='Descarga el brochure y escríbenos por WhatsApp para recibir tu plan.'})

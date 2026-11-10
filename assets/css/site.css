@@ -711,3 +711,39 @@ html[data-theme=claro] .socio{background:#fff}
 .sp-share .btn-line{color:var(--carbon)}
 @media (max-width:900px){.sp-head{grid-template-columns:1fr}.sp-presets{grid-template-columns:1fr}}
 html[data-theme=claro] .ent-tip{color:var(--carbon)}
+/* Ficha de unidad y comparador · inventario Monteza */
+.up{margin-top:22px;background:#fff;border:1px solid var(--linea);border-top:3px solid var(--oro);padding:clamp(18px,2.6vw,30px);scroll-margin-top:90px;box-shadow:0 18px 40px -28px #1d1d1b55}
+.up-head{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.up-head h3{font:400 clamp(26px,3vw,38px)/1.05 var(--display);margin:0;color:var(--carbon)}
+.up-head p{margin:8px 0 0;color:var(--acero);font-size:15px}
+.up-price{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:4px}
+.up-price b{font:400 clamp(26px,3vw,38px)/1 var(--display);color:var(--acento);font-variant-numeric:tabular-nums}
+.up-price small{color:var(--acero);font-size:13px}
+.up-x{border:0;background:none;font-size:28px;line-height:1;cursor:pointer;color:var(--acero);padding:0 4px}
+.up-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(18px,3vw,40px);margin-top:22px}
+.up-in .lbl{display:block;font:700 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--acero);margin:16px 0 8px}
+.up-in .lbl:first-child{margin-top:0}
+.up-in .chip{padding:9px 12px;font-size:13px}
+.up-out{background:var(--carbon);color:#F2F0EA;padding:clamp(18px,2.4vw,28px)}
+.up-out .kpi span{color:var(--niebla)}
+.up-out .kpi b{color:#fff}
+.up-out .kpi.big b{color:var(--oro)}
+.up-out .kpis{grid-template-columns:repeat(3,1fr)}
+.up-act{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.up-act .btn[disabled]{opacity:.6;cursor:default}
+.ucmp{margin-top:18px;background:var(--papel);border:1px solid var(--linea);padding:clamp(18px,2.6vw,28px)}
+.ucmp-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
+.ucmp-head h3{font:400 clamp(22px,2.4vw,30px)/1.1 var(--display);margin:0}
+.ucmp-t th{text-align:left;font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--acero);width:170px;white-space:nowrap}
+.ucmp-t td{font-variant-numeric:tabular-nums;vertical-align:top}
+.ucmp-t td small{color:var(--acero);font-weight:400}
+.ucmp-t td.best{background:#fff6dd;box-shadow:inset 3px 0 0 var(--oro)}
+table.inv.ucmp-t td button.lnk,.lnk{border:0;background:none;padding:0;font:600 13px var(--body);color:var(--acento);cursor:pointer;text-decoration:underline}
+.ucmp-t td b{font:400 22px/1.1 var(--display);color:var(--carbon)}
+.ucmp-t th,.ucmp-t td{padding:12px 14px;border-bottom:1px solid var(--linea)}
+.ucmp .tbl-wrap{overflow-x:auto}
+.ucmp-t{min-width:520px;width:100%;background:#fff}
+table.inv tr.on td{background:#fff6dd}
+@media (max-width:860px){.up-grid{grid-template-columns:1fr}.up-price{margin-left:0;text-align:left}.up-act .btn{flex:1 1 100%;justify-content:center}}
+@media (max-width:520px){.up-out .kpis{grid-template-columns:1fr 1fr}.ucmp-t th{width:auto;white-space:normal}}
+html[data-theme=claro] .up-out{background:var(--carbon)}
