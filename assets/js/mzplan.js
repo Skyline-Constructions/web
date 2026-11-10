@@ -2,9 +2,10 @@
 (function(){
 var IMG='/assets/img/plan/';
 var C={carb:[29,29,27],oro:[255,201,97],ace:[125,95,37],horm:[244,243,239],acero:[94,92,87],lin:[214,212,206],niebla:[180,177,168],bco:[255,255,255],gris:[201,199,192]};
-function money(v){return 'USD '+Math.round(v||0).toLocaleString('es-EC')}
-function money2(v){return 'USD '+(v||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function pct(v){return (Math.round((v||0)*10)/10).toLocaleString('es-EC')+' %'}
+var gN=window.SKN||function(n,d){d=d||0;var s=Math.abs(+n||0).toFixed(d).split('.');s[0]=s[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return (n<0?'-':'')+s.join(',')};
+function money(v){return 'USD '+gN(Math.round(v||0))}
+function money2(v){return 'USD '+gN(v||0,2)}
+function pct(v){var r=Math.round((v||0)*10)/10;return gN(r,r%1?1:0)+' %'}
 function load(src,test){return new Promise(function(res,rej){if(test())return res();var s=document.createElement('script');s.src=src;s.onload=function(){res()};s.onerror=function(){rej(new Error(src))};document.head.appendChild(s)})}
 function dataURL(url){return fetch(url).then(function(r){if(!r.ok)throw new Error(url);return r.blob()}).then(function(b){return new Promise(function(res){var fr=new FileReader();fr.onload=function(){res(fr.result)};fr.readAsDataURL(b)})})}
 function imgs(list){var o={};return Promise.all(list.map(function(n){return dataURL(IMG+n).then(function(d){o[n]=d},function(){o[n]=null})})).then(function(){return o})}
