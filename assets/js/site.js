@@ -190,7 +190,7 @@ q.querySelector('.qz-go').addEventListener('click',function(){var r=R[a[0]],t=q.
 q.querySelector('.lead-x').addEventListener('click',function(){q.close()});q.addEventListener('click',function(e){if(e.target===q)q.close()});
 // Invitación suave: al 55 % de lectura o al intentar salir (una vez por sesión)
 var n=document.getElementById('nudge'),seen=false;try{seen=sessionStorage.getItem('sk-nudge')}catch(e){}
-function nudge(){if(seen||!n||document.querySelector('dialog[open]'))return;seen=1;try{sessionStorage.setItem('sk-nudge','1')}catch(e){}n.hidden=false;try{gtag('event','nudge_show')}catch(e){}}
+function nudge(){if(document.getElementById('simulador'))return;if(seen||!n||document.querySelector('dialog[open]'))return;seen=1;try{sessionStorage.setItem('sk-nudge','1')}catch(e){}n.hidden=false;try{gtag('event','nudge_show')}catch(e){}}
 if(n){n.querySelector('.nx').addEventListener('click',function(){n.hidden=true});
  addEventListener('scroll',function(){if(scrollY/(document.body.scrollHeight-innerHeight)>.55)nudge()},{passive:true});
  document.addEventListener('mouseout',function(e){if(!e.relatedTarget&&e.clientY<5)nudge()})}
